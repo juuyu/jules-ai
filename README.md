@@ -12,7 +12,8 @@
 .
 ├── ai-coding/        # AI 编程学习（8 章）
 ├── spec-coding/      # Spec 驱动开发实践（5 章）
-└── awesome-repos/    # 热门 AI 开源仓库整理（7 个分类）
+├── awesome-repos/    # 热门 AI 开源仓库整理（7 个分类）
+└── PROJECT-SUMMARY.md  # 项目总结报告（2026-10-15）
 ```
 
 ## 学习路径（建议顺序）
