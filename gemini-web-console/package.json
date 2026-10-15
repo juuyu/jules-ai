@@ -1,0 +1,24 @@
+{
+  "name": "gemini-web-console-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "vitest run",
+    "postinstall": "node scripts/fix-node-pty.js",
+    "smoke": "node scripts/e2e-smoke.mjs"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "node-pty": "^1.0.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

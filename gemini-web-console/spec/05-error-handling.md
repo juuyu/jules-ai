@@ -18,6 +18,7 @@
 | INVALID_PARAM | 400 | 参数缺失 / 非法 |
 | UNAUTHORIZED | 403 | 令牌错误 |
 | WORKSPACE_NOT_FOUND | 404 | 工作区未登记 |
+| SESSION_NOT_FOUND | 404 | 终端会话不存在（可能服务已重启） |
 | GEMINI_FILE_NOT_FOUND | 404 | 目标配置 / 会话文件不存在 |
 | GIT_FAILED | 409 | git 命令非零退出（附 stderr 摘要） |
 | TMUX_NOT_AVAILABLE | 500 | 系统未安装 tmux |
@@ -26,7 +27,8 @@
 
 ## 3. 后端约定
 
-- 路由层用统一 `fail(res, status, code, message)` 输出规范错误体；未知异常由全局兜底中间件转 `INTERNAL`
+- 路由层用统一 `fail(reply, status, code, message)` 输出规范错误体；未知异常由全局兜底中间件转 `INTERNAL`
+- 空请求体 / 非法 JSON 由 Fastify 拦截为 400，统一映射为 `INVALID_PARAM`；客户端在无 body 的请求（如 DELETE）上禁止携带 `content-type: application/json`
 - 原始异常（含堆栈）只写日志，**不返回前端**
 - 外部进程统一经 `server/lib/exec.js` 封装：返回 `{ ok, stdout, stderr, exitCode }`，不抛裸异常；超时（默认 30s）与命令不存在都归一为具体错误码
 - 日志：单行结构化 `[time][level][module] message`，写 stderr；MVP 不引日志库

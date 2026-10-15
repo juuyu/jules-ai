@@ -20,8 +20,10 @@ gemini-web-console/
 │   │   ├── gemini-files.js # 配置 / MCP / Skills / 命令（读写 ~/.gemini 与项目 .gemini）
 │   │   └── sessions.js     # 终端会话 + 历史会话导出
 │   └── lib/                # 纯逻辑与外部命令封装（不感知 HTTP）
+│       ├── errors.js       # 错误码集中定义 + AppError + 统一响应体
 │       ├── exec.js         # execFile 统一封装（超时、错误归一）
 │       ├── json-file.js    # JSON 文件安全读写（读-改-写串行）
+│       ├── workspaces.js   # 工作区白名单存取（路径校验、去重）
 │       ├── gemini-paths.js # ~/.gemini 路径解析（以官方文档为准）
 │       └── git.js          # git 命令封装（status / diff / commit / push）
 ├── web/                    # 前端（Vite 工程）
@@ -34,6 +36,9 @@ gemini-web-console/
 │       ├── panels/         # 功能面板（Git、MCP、Skills、命令、会话）
 │       └── hooks/          # useTerminal、useApi 等
 ├── tests/                  # 测试，镜像 server / web 结构
+├── scripts/                # 开发辅助脚本（不参与服务运行时）
+│   ├── fix-node-pty.js     # postinstall：修复 node-pty spawn-helper 可执行权限
+│   └── e2e-smoke.mjs       # P0 端到端冒烟（需 tmux + 后端已启动）
 └── data/                   # 运行时数据（workspaces.json 等）→ .gitignore
 ```
 

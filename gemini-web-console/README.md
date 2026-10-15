@@ -20,6 +20,34 @@
 - 会话层：tmux 持久化 —— 刷新页面 / 关闭浏览器不丢进程与历史
 - 与 Gemini CLI 集成有官方三条通道：交互 PTY、headless stream-json、ACP 协议（渐进采用）
 
+## 快速开始
+
+前置要求：Node.js ≥ 20、tmux（macOS：`brew install tmux`）
+
+```bash
+# 1. 安装依赖（后端 + 前端）
+npm install
+cd web && npm install && cd ..
+
+# 2. 启动后端（默认 http://127.0.0.1:7331）
+npm start
+
+# 3. 另开终端，启动前端开发服务器（http://127.0.0.1:5174）
+cd web && npm run dev
+```
+
+启动日志会打印带令牌的访问地址（形如 `http://127.0.0.1:5174/?token=...`），浏览器直接打开即可。
+令牌首次启动自动生成并保存于 `data/token`（仅本机可读）；服务只监听 127.0.0.1，不对外暴露。
+
+其他命令：
+
+| 命令 | 说明 |
+| --- | --- |
+| `npm test` | 运行 Vitest 测试（单元 + 接口） |
+| `npm run dev` | 后端热重载启动 |
+| `npm run smoke` | P0 端到端冒烟（需后端已启动、tmux 可用） |
+| `cd web && npm run build` | 构建前端产物到 web/dist |
+
 ## 文档
 
 | 文档 | 内容 |
@@ -31,7 +59,7 @@
 ## 当前状态
 
 - [x] 需求调研与技术方案（2026-10-15）
-- [ ] P0：会话管理 + 工作区 + 终端多 tab
+- [x] P0：工作区 + 终端会话 + 多 tab（骨架完成，E2E 冒烟通过）
 - [ ] P1：Git 面板 + 配置查看
 - [ ] P2：会话导出 + MCP / Skills / 命令管理
 - [ ] P3：聊天模式（stream-json）、ACP 探索

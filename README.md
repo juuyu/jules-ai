@@ -5,6 +5,7 @@
 - **AI 编程学习** — 知识体系、核心技能、工具生态、工作流
 - **Spec 驱动开发** — 方法论、框架对比、实践案例
 - **热门仓库整理** — AI 开源项目分类收集（数据截至 2026-10-15）
+- **本地工具实践** — Gemini Web Console：把 Gemini CLI 搬进浏览器的轻量控制台
 
 ## 目录结构
 
@@ -13,6 +14,7 @@
 ├── ai-coding/        # AI 编程学习（8 章）
 ├── spec-coding/      # Spec 驱动开发实践（5 章）
 ├── awesome-repos/    # 热门 AI 开源仓库整理（7 个分类）
+├── gemini-web-console/ # 本地网页版 Gemini CLI 控制台（Node + React，P0 骨架）
 └── PROJECT-SUMMARY.md  # 项目总结报告（2026-10-15）
 ```
 
@@ -29,3 +31,4 @@
 | [ai-coding](./ai-coding/README.md) | 基础认知 / 核心技能 / 工具生态 / 工作流 / 进阶 / 术语表 / CLI 与 AI IDE 实战 | 初稿完成 |
 | [spec-coding](./spec-coding/README.md) | 概念 / 框架 / 要素 / 实践 / Spec Kit 指南 | 初稿完成 |
 | [awesome-repos](./awesome-repos/README.md) | 7 类清单（含 Star 数据） | 初稿完成（数据截至 2026-10-15） |
+| [gemini-web-console](./gemini-web-console/README.md) | 本地网页版 Gemini CLI 控制台：工作区 / 终端多 tab / tmux 持久化 | P0 骨架完成，E2E 冒烟通过 |
