@@ -393,8 +393,8 @@ gemini mcp enable / disable <名字>  # 临时启停（配置保留）
 | 工具菜单怎么来 | 启动进程 → 走 stdin/stdout 发工具列表请求 | 连 URL → 走 HTTP 发**同一批**请求 |
 | 调用工具时 | `tools/call` 走同一对管道 | `tools/call` 走 HTTP POST |
 
-两种情况跑的是同一套 MCP 握手（`initialize` → `tools/list` → `tools/call`），
-两个最容易误解的点：
+两种情况跑的是同一套 MCP 握手（`initialize` → `tools/list` → `tools/call`，
+报文实况见下一节），两个最容易误解的点：
 
 1. **命令和 URL 都不包含工具信息**。`uvx mcp-atlassian` 只是"把程序叫醒"，
    工具清单是叫醒之后握手现问出来的。验证方法：手动在终端跑
@@ -408,6 +408,149 @@ gemini mcp enable / disable <名字>  # 临时启停（配置保留）
 > 工具还按权限组过滤（`read_confluence` / `write_confluence` …，Jira 的
 > `delete_jira` 默认关闭需管理员开启），每次调用记入 Atlassian 审计日志。
 > **同一个 URL，不同账号看到的菜单可能不同。**
+
+### 初次握手：会话启动时的五步报文
+
+上文的"同一套握手"具体长什么样？以下为 JSON-RPC 2.0 报文，会话启动后
+几十毫秒内完成（stdio 型走 stdin/stdout 管道，远程型走 HTTP——内容一模一样；
+客户端标识已核对 `mcp-client.ts` 源码，工具定义取自 mcp-atlassian 源码）：
+
+```
+Gemini CLI（客户端）                    MCP 服务器（如 uvx mcp-atlassian 子进程）
+      │── ① initialize：我是谁、我支持什么 ─────→│
+      │←─ ② initialize 应答：我是谁、我有什么 ───│
+      │── ③ notifications/initialized（静默确认）→│
+      │── ④ tools/list：菜单给我看看 ───────────→│
+      │←─ ⑤ tools/list 应答：完整菜单 ───────────│
+      │                                          │
+      │（服务器还可能反向请求 roots/list——        │
+      │  "你开着哪些项目目录？"——CLI 照实回答）    │
+```
+
+**① CLI → 服务器：initialize（自我介绍）**
+
+```jsonc
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",          // 版本协商，随 SDK 版本
+    "capabilities": {
+      "roots": { "listChanged": true }        // CLI 声明："我能回答我开着哪些工作目录"
+    },
+    "clientInfo": {
+      "name": "gemini-cli-mcp-client",        // CLI 自报名字（源码原文）
+      "version": "0.64.0"                     // 实际为当前 CLI 版本号
+    }
+  }
+}
+```
+
+**② 服务器 → CLI：initialize 应答**
+
+```jsonc
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "result": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {
+      "tools":     { "listChanged": true },   // "我有工具"——下一步才有人来问菜单
+      "prompts":   {},                        // "我有预设提示词"（→ 斜杠命令）
+      "resources": {}                         // "我有数据资源"（→ @ 引用）
+    },
+    "serverInfo": {
+      "name": "Atlassian MCP",                // 服务器自报名字（源码注册名）
+      "version": "x.y.z"
+    }
+    // 可选字段 "instructions"：给模型的使用说明，会追加进系统提示词
+  }
+}
+```
+
+> 能力门：CLI 源码里有一行 `if (getServerCapabilities()?.tools == null) return [];`
+> ——服务器没声明 `tools`，`tools/list` 根本不会发，工具发现直接跳过。
+
+**③④ 确认与拉菜单**
+
+```jsonc
+// CLI → 服务器（通知，无 id、无需应答）
+{ "jsonrpc": "2.0", "method": "notifications/initialized" }
+
+// CLI → 服务器
+{ "jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {} }
+```
+
+**⑤ 服务器 → CLI：菜单应答（信息量最大的一步）**
+
+以 mcp-atlassian 源码里的 `create_page` 为例（描述文字为源码原文，有删减）：
+
+```jsonc
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "tools": [
+      {
+        "name": "confluence_create_page",       // 前缀来自 mount(namespace="confluence")
+        "description": "Create a new Confluence page.",
+        "annotations": {                         // 机器可读的安全标注
+          "title": "Create Page",
+          "destructiveHint": false               // 对比：update_page 是 true
+        },
+        "inputSchema": {                         // 模型照这个 schema 生成参数
+          "type": "object",
+          "properties": {
+            "space_key":  { "type": "string",
+              "description": "The key of the space ... like 'DEV', 'TEAM', or 'DOC'" },
+            "title":      { "type": "string", "description": "The title of the page" },
+            "content":    { "anyOf": [{"type":"string"},{"type":"null"}],
+              "description": "... Either 'content' or 'content_file' must be provided, but not both." },
+            "content_file": { "anyOf": [{"type":"string"},{"type":"null"}],
+              "description": "Filesystem path to read the page body from (UTF-8). Useful for bodies too large to pass as an inline tool argument." },
+            "content_format": { "type": "string", "default": "markdown",
+              "description": "'markdown' (default), 'wiki', 'storage', or 'xhtml'" }
+            // …还有 parent_id / emoji / page_width / table_layout / subtype 等
+          },
+          "required": ["space_key", "title"]
+        }
+      }
+      // …同一响应里还有 confluence_search / confluence_get_page /
+      //   confluence_update_page / confluence_delete_page … 平级工具
+    ]
+    // FastMCP 默认一次返回全部；协议支持 nextCursor 翻页
+  }
+}
+```
+
+**插曲：握手是双向的**——`roots` 能力给了服务器反问的权利：
+
+```jsonc
+// 服务器 → CLI
+{ "jsonrpc": "2.0", "id": 2, "method": "roots/list" }
+
+// CLI → 服务器（源码实证：file:// URI + 目录名）
+{ "jsonrpc": "2.0", "id": 2, "result": { "roots": [
+  { "uri": "file:///Users/you/my-project", "name": "my-project" }
+] } }
+```
+
+**拿到菜单后，CLI 的处理流水线**（`discoverTools` 源码）：
+
+1. **能力门**：服务器没声明 `tools` → 连问都不问；
+2. **清洗 schema**：如 `"type": ["string","null"]` 拆成 `"type": "string"` +
+   `"nullable": true`（另有 `$schema`、`additionalProperties` 剥离）——为兼容
+   Gemini API 的声明格式；
+3. **白 / 黑名单过滤**：`includeTools` / `excludeTools` 在这一步生效；
+4. **注册**：存为 `(服务器名, 工具名, 描述, schema, trust, isReadOnly)`；其中
+   `isReadOnly` 取自服务器的 `readOnlyHint` 标注（`confluence_search` 是 `true`，
+   `update_page` 不是）；
+5. **注入模型**：以全名 `mcp_{配置名}_{工具名}` 作为「工具声明」发给模型。
+
+> 想亲眼看报文：`gemini --debug` 运行时可见 MCP 消息流（交互模式按 F12 开
+> 调试控制台）；`/mcp` 显示的则是第 ⑤ 步应答的摘要视图。手动跑
+> `uvx mcp-atlassian` 时的"呆住"现象，就是它在等第 ① 条 `initialize` 报文。
 
 ### 运行时机制：AI 是怎么用到 MCP 的
 
