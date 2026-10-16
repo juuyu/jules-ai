@@ -12,7 +12,7 @@
 
 ```text
 .
-├── ai-coding/        # AI 编程学习（9 章）
+├── ai-coding/        # AI 编程学习（12 章）
 ├── spec-coding/      # Spec 驱动开发实践（6 章）
 ├── awesome-repos/    # 热门 AI 开源仓库整理（7 个分类）
 ├── gemini-web-console/ # 本地网页版 Gemini CLI 控制台（Node + React，P0 骨架）
@@ -30,7 +30,7 @@
 
 | 目录 | 内容 | 状态 |
 | --- | --- | --- |
-| [ai-coding](./ai-coding/README.md) | 基础认知 / 核心技能 / 工具生态 / 工作流 / 进阶 / 术语表 / CLI 与 AI IDE 实战 / MCP 开发 | 初稿完成 |
+| [ai-coding](./ai-coding/README.md) | 基础认知 / 核心技能 / 工具生态 / 工作流 / 进阶 / 术语表 / CLI 与 AI IDE 实战 / MCP 开发 / 能力封装 / 项目知识库 / 代码腐坏治理 | 初稿完成 |
 | [spec-coding](./spec-coding/README.md) | 概念 / 框架 / 要素 / 实践 / Spec Kit 指南 / 受限网络手工安装 | 初稿完成 |
 | [awesome-repos](./awesome-repos/README.md) | 7 类清单（含 Star 数据） | 初稿完成（数据截至 2026-10-15） |
 | [gemini-web-console](./gemini-web-console/README.md) | 本地网页版 Gemini CLI 控制台：工作区 / 终端多 tab / tmux 持久化 | P0 骨架完成，E2E 冒烟通过 |
