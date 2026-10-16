@@ -1,0 +1,73 @@
+// =====================================================================
+// Gemini CLI 用户级设置 —— 参考示例（带注释，可直接使用）
+//
+// 拷贝到：~/.gemini/settings.json
+//         Windows: %USERPROFILE%\.gemini\settings.json
+// 生效范围：你机器上的所有项目（个人偏好 + 个人账号类 MCP 服务器）
+//
+// 分工原则（与项目级的分界）：
+// - 项目级（<项目>/.gemini/settings.json）放团队共识；
+//   见同目录 settings.project.example.json；
+// - 本文件放"跟人走"的东西：个人偏好、个人账号类服务器；
+// - 同名键：项目级覆盖用户级；mcpServers 为浅合并（两级的服务器共存，
+//   同名服务器以项目级整体覆盖）。
+//
+// 官方支持 // 注释（解析时自动剥离）；完整键列表见官方 configuration 参考。
+// =====================================================================
+{
+  // ================= 会话习惯 =================
+  "general": {
+    // 审批模式：default=每次询问 / auto_edit=自动批准编辑 / plan=只读
+    "defaultApprovalMode": "default",
+    // 会话检查点，可回滚到之前的步骤（默认 false）
+    "checkpointing": { "enabled": true },
+    // 长任务结束时终端通知（默认 false）
+    "enableNotifications": true,
+    "vimMode": false
+  },
+
+  // ================= 界面 =================
+  "ui": {
+    "autoThemeSwitching": true
+    // "theme": "<主题名，以 /theme 列表为准>"
+  },
+
+  // ================= 模型 =================
+  "model": {
+    // 固定模型时填写，取值以 /model 命令的列表为准
+    // "name": "<模型名>",
+    // 上下文用量达到该比例时触发压缩（默认 0.5）
+    "compressionThreshold": 0.5,
+    // 保留的最大对话轮次，-1 为不限制（默认 -1）
+    "maxSessionTurns": -1,
+    // 工具输出摘要化（目前支持 run_shell_command）
+    "summarizeToolOutput": {
+      "run_shell_command": { "tokenBudget": 2000 }
+    }
+  },
+
+  // ================= 个人 MCP 服务器 =================
+  // 只有自己用的（个人账号、个人工具）放这里；
+  // 团队共用的服务器放项目级文件（定义共享、凭证个人化）
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      // TOKEN 的真实值放 ~/.gemini/.env（Windows: %USERPROFILE%\.gemini\.env），
+      // 一行一个 KEY=value，详见 README「凭证落地」节
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_PERSONAL_ACCESS_TOKEN" },
+      "trust": false
+    }
+  },
+
+  // ================= 隐私 =================
+  "privacy": {
+    "usageStatisticsEnabled": true
+  },
+
+  // ================= 实验特性 =================
+  "experimental": {
+    // 自动记忆：从历史会话沉淀个人经验与技能草稿（/memory inbox 审阅后生效）
+    "autoMemory": false
+  }
+}

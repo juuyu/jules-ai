@@ -1,0 +1,95 @@
+// =====================================================================
+// Gemini CLI 项目级设置 —— 参考示例（带注释，可直接使用）
+//
+// 拷贝到：<项目根>/.gemini/settings.json    （进 git，团队共享）
+//
+// 分工原则（与个人级的分界）：
+// - 本文件：团队共识 —— 上下文文件名、项目 MCP 服务器、工具与安全策略；
+// - 个人偏好（模型、主题、通知）放 ~/.gemini/settings.json，
+//   见同目录 settings.user.example.json；
+// - 同名键：项目级覆盖用户级；mcpServers 为浅合并（两级的服务器共存，
+//   同名服务器以项目级整体覆盖）；
+// - 凭证永不写入本文件：用 $VAR 引用环境变量，真实值放各成员自己的
+//   .env（推荐）或系统环境变量，详见 README「凭证落地」节。
+//
+// 官方支持 // 注释（解析时自动剥离）；完整键列表见官方 configuration 参考。
+// =====================================================================
+{
+  // ================= 上下文文件 =================
+  "context": {
+    // 上下文文件名，支持数组；加 AGENTS.md 可与其它 AI 工具共用同一份文件
+    "fileName": ["GEMINI.md", "AGENTS.md"],
+    // 搜索 GEMINI.md 的最大目录数（默认 200）
+    "discoveryMaxDirs": 200,
+    // 向上查找 GEMINI.md 的边界标记；空数组 [] 表示禁用向上查找
+    "memoryBoundaryMarkers": [".git"],
+    // 把工作区之外的目录也纳入上下文（如共享规范仓库）
+    "includeDirectories": [],
+    "fileFiltering": {
+      "respectGitIgnore": true,     // 遵守 .gitignore（默认 true）
+      "respectGeminiIgnore": true   // 遵守 .geminiignore（默认 true）
+    }
+  },
+
+  // ================= 技能 =================
+  "skills": {
+    "enabled": true,
+    "disabled": []
+  },
+
+  // ================= MCP 服务器（团队共用）=================
+  // 判断标准：团队每个人都用 → 放这里（定义共享、凭证个人化）；
+  //          只有自己用（个人账号类）→ 放用户级示例文件。
+  // 全局白/黑名单（可选）：设置后只连接 allowed 里的服务器
+  // "mcp": { "allowed": ["confluence", "project-api"], "excluded": [] },
+
+  "mcpServers": {
+    // 例 1：stdio 本地进程 —— 团队文档同步到 Confluence
+    "confluence": {
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        // 各成员在自己机器上设置这三个变量，值不进仓库。
+        // 推荐放 ~/.gemini/.env（Windows: %USERPROFILE%\.gemini\.env），
+        // 一行一个 KEY=value，详见 README「凭证落地」节
+        "CONFLUENCE_URL": "$CONFLUENCE_URL",
+        "CONFLUENCE_USERNAME": "$CONFLUENCE_USERNAME",
+        "CONFLUENCE_API_TOKEN": "$CONFLUENCE_API_TOKEN"
+      },
+      "timeout": 60000,
+      // 写权限服务器保持 false：每次写入人工确认
+      "trust": false
+      // 工具白名单（工具名以 /mcp 实际输出为准）：
+      // "includeTools": ["..."]
+    },
+    // 例 2：远程 HTTP 服务 —— 项目内部服务（必须加认证，或仅限内网可达）
+    "project-api": {
+      "httpUrl": "https://mcp.internal.example.com/stream",
+      "headers": { "Authorization": "Bearer $INTERNAL_MCP_TOKEN" },
+      "timeout": 30000,
+      "trust": false
+    }
+  },
+
+  // ================= 内置工具 =================
+  "tools": {
+    // "sandbox": false,       // 整进程沙箱：false / true / "docker" 等
+    // "allowed": [],          // 工具白名单（不写=全部可用）
+    // "exclude": [],          // 工具黑名单
+    "shell": {
+      // 后台 shell 命令结束时：silent / inject / notify
+      "backgroundCompletionBehavior": "silent",
+      "inactivityTimeout": 300
+    }
+  },
+
+  // ================= 安全 =================
+  "security": {
+    // "disableAlwaysAllow": false,   // 高敏项目可开：禁用"始终允许"类选项
+    // 敏感环境变量传递策略（默认已自动屏蔽 *TOKEN*/*KEY* 等模式）
+    "environmentVariableRedaction": {
+      "allowed": [],
+      "blocked": []
+    }
+  }
+}

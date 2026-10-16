@@ -1,0 +1,16 @@
+# 用法：/git:commit（可追加说明：/git:commit 修复登录超时）
+description = "根据暂存区改动生成 Conventional Commits 提交信息。"
+
+prompt = """
+请根据以下 git diff 生成一条提交信息，要求：
+
+- 格式：Conventional Commits（type(scope): subject），subject 用中文，不超过 50 字。
+- 只描述「改了什么、为什么改」，不要罗列文件。
+- 若有附加说明，优先采纳：{{args}}
+
+```diff
+!{git diff --staged}
+```
+
+最后给出可直接执行的提交命令，但不要替我执行。
+"""

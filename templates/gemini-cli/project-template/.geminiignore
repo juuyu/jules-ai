@@ -1,0 +1,20 @@
+# Gemini CLI 忽略规则（语法同 .gitignore）
+# 被排除的文件不会被 AI 读取、也不会出现在 @ 文件补全里
+# 修改后需重启 Gemini CLI 会话才会生效
+
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+coverage/
+*.log
+
+# 环境变量与密钥（务必保留）
+.env
+.env.*
+*.pem
+*.key
+
+# 大体积归档、素材
+# archive/
+# assets/videos/
