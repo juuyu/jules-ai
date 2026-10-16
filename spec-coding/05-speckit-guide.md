@@ -24,6 +24,7 @@
 
 - Python 3.11+ 和 [uv](https://github.github.io/spec-kit/install/uv.html)（包管理器）
 - 一个受支持的 AI 编程工具（Copilot、Claude Code、Cursor、Gemini CLI 等）
+- 受限网络（不能安装 uv、只能浏览器访问 GitHub）的机器：跳过前两条，见 [06 手工安装](./06-manual-install.md)
 
 ### 安装并新建项目
 
