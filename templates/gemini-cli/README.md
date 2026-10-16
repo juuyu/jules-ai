@@ -253,6 +253,9 @@ my-skill/
 > 跨工具兼容：技能目录也可放 `.agents/skills/`（Agent Skills 开放标准
 > 的通用别名），Claude Code 等其他工具同样可读。
 
+> 选型指南：什么时候该封装成技能、什么时候该用命令，见
+> [`ai-coding/10 能力封装`](../../ai-coding/10-skill-vs-command.md)。
+
 ### 5. docs/ —— 项目知识库
 
 `docs/` 不是 Gemini CLI 的强制约定，而是本模板推荐的**开放知识层**：
