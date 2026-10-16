@@ -6,7 +6,7 @@
 - **Spec 驱动开发** — 方法论、框架对比、实践案例
 - **热门仓库整理** — AI 开源项目分类收集（数据截至 2026-10-15）
 - **本地工具实践** — Gemini Web Console：把 Gemini CLI 搬进浏览器的轻量控制台
-- **项目模板** — Gemini CLI 项目初始化模板：常驻上下文、自定义命令、技能、MCP、文档体系
+- **项目模板** — Gemini CLI 项目初始化模板（常驻上下文、自定义命令、技能、MCP、文档体系）；deepseek-harness 的 AI 协作配置模板（指令分层 / 决策日志 / 技能 / 门禁的拆解与借鉴）
 
 ## 目录结构
 
@@ -16,7 +16,7 @@
 ├── spec-coding/      # Spec 驱动开发实践（6 章）
 ├── awesome-repos/    # 热门 AI 开源仓库整理（7 个分类）
 ├── gemini-web-console/ # 本地网页版 Gemini CLI 控制台（Node + React，P0 骨架）
-├── templates/        # Gemini CLI 项目初始化模板（拷贝进新项目即用）
+├── templates/        # 项目初始化模板（Gemini CLI 套件；deepseek-harness AI 协作配置拆解）
 └── PROJECT-SUMMARY.md  # 项目总结报告（2026-10-15）
 ```
 
@@ -35,3 +35,4 @@
 | [awesome-repos](./awesome-repos/README.md) | 7 类清单（含 Star 数据） | 初稿完成（数据截至 2026-10-15） |
 | [gemini-web-console](./gemini-web-console/README.md) | 本地网页版 Gemini CLI 控制台：工作区 / 终端多 tab / tmux 持久化 | P0 骨架完成，E2E 冒烟通过 |
 | [templates/gemini-cli](./templates/gemini-cli/README.md) | Gemini CLI 项目模板：GEMINI.md / 命令 / 技能 / MCP / docs 体系 | 完成（官方文档 2026-10 核对） |
+| [templates/deepseek-harness](./templates/deepseek-harness/ai-setup-template.md) | deepseek-harness 的 AI 协作配置模板 + 实践分析（AGENTS.md 分层 / 决策日志 / 技能 / 证据纪律） | 完成（仓库 v0.2.1-alpha.5 核对） |
