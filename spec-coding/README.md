@@ -11,7 +11,7 @@
 | [03 核心要素](./03-elements.md) | 需求 / 方案 / 任务 / 约束文件的写法与维护 | 初稿 |
 | [04 实践落地](./04-practice.md) | 完整案例、模板集、工具链、踩坑记录 | 初稿 |
 | [05 Spec Kit 使用指南](./05-speckit-guide.md) | 安装初始化、命令流程、短链接服务完整示例 | 初稿 |
-| [06 受限网络手工安装](./06-manual-install.md) | 不能装 uv、只能浏览器访问 GitHub 时的手工安装（Windows + Gemini CLI） | 初稿 |
+| [06 受限网络手工安装](./06-manual-install.md) | 不能装 uv、只能浏览器访问 GitHub 时的手工安装（Windows + Gemini CLI），含[预转换好的命令文件](./06-gemini-commands/README.md) | 初稿 |
 
 ## 建议阅读顺序
 

@@ -8,7 +8,7 @@
 `specify` CLI 的 `init` 本质上只做两件事：
 
 1. 把内置核心资产拷进项目的 `.specify/` 目录（资产打包在 CLI 包内，离线可用）
-2. 把 10 个命令模板（markdown）按你用的 AI 工具转成对应格式——Gemini CLI 即 `.gemini/commands/*.toml`
+2. 把 10 个命令模板（markdown）按你用的 AI 工具转成对应格式——Gemini CLI 即 `.gemini/commands/*.toml`（本仓库已转换好：[06-gemini-commands](./06-gemini-commands/README.md)，直接复制）
 
 运行时的辅助脚本是自包含的（只用 PowerShell 读写文件，不调用 `specify` 本体），所以把这两步手工复刻 = 等价安装。
 
@@ -74,29 +74,31 @@
 - 6 个 PowerShell 脚本互相引用，必须全抄、不能挑；bash / python 版本不用管
 - `templates\vscode-settings.json` 及仓库其余内容（src、docs、bundles、extensions、presets 等）与 Gemini CLI 工作流无关，不用抄
 
-## 6.3 第二部分：10 个命令 → `.gemini\commands\`（需做格式转换）
+## 6.3 第二部分：10 个命令 → `.gemini\commands\`（已转换好，直接复制）
 
-来源目录：[templates/commands（v1.2.0）](https://github.com/github/spec-kit/tree/v1.2.0/templates/commands)。每个 `.md` 转成一个 `.toml`：
+这 10 个文件本仓库已按 v1.2.0 规则转换完成，存放在 **[`06-gemini-commands/`](./06-gemini-commands/README.md)**。逐个点开文件页，用 **Copy raw file** 复制全文，在公司电脑上保存为项目 `.gemini\commands\` 下的同名文件即可：
 
-| 源文件 | 另存为（`.gemini\commands\` 下） | 在 Gemini CLI 里的命令 |
-| --- | --- | --- |
-| [constitution.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/constitution.md) | speckit.constitution.toml | `/speckit.constitution` |
-| [specify.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/specify.md) | speckit.specify.toml | `/speckit.specify` |
-| [clarify.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/clarify.md) | speckit.clarify.toml | `/speckit.clarify` |
-| [plan.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/plan.md) | speckit.plan.toml | `/speckit.plan` |
-| [tasks.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/tasks.md) | speckit.tasks.toml | `/speckit.tasks` |
-| [implement.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/implement.md) | speckit.implement.toml | `/speckit.implement` |
-| [analyze.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/analyze.md) | speckit.analyze.toml | `/speckit.analyze` |
-| [checklist.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/checklist.md) | speckit.checklist.toml | `/speckit.checklist` |
-| [converge.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/converge.md) | speckit.converge.toml | `/speckit.converge` |
-| [taskstoissues.md](https://github.com/github/spec-kit/blob/v1.2.0/templates/commands/taskstoissues.md) | speckit.taskstoissues.toml | `/speckit.taskstoissues` |
+| 转好的文件（本仓库） | 在 Gemini CLI 里的命令 |
+| --- | --- |
+| [speckit.constitution.toml](./06-gemini-commands/speckit.constitution.toml) | `/speckit.constitution` |
+| [speckit.specify.toml](./06-gemini-commands/speckit.specify.toml) | `/speckit.specify` |
+| [speckit.clarify.toml](./06-gemini-commands/speckit.clarify.toml) | `/speckit.clarify` |
+| [speckit.plan.toml](./06-gemini-commands/speckit.plan.toml) | `/speckit.plan` |
+| [speckit.tasks.toml](./06-gemini-commands/speckit.tasks.toml) | `/speckit.tasks` |
+| [speckit.implement.toml](./06-gemini-commands/speckit.implement.toml) | `/speckit.implement` |
+| [speckit.analyze.toml](./06-gemini-commands/speckit.analyze.toml) | `/speckit.analyze` |
+| [speckit.checklist.toml](./06-gemini-commands/speckit.checklist.toml) | `/speckit.checklist` |
+| [speckit.converge.toml](./06-gemini-commands/speckit.converge.toml) | `/speckit.converge` |
+| [speckit.taskstoissues.toml](./06-gemini-commands/speckit.taskstoissues.toml) | `/speckit.taskstoissues` |
 
-前 6 个是核心流程；后 4 个建议顺手装齐，转换规则完全一样。
+前 6 个是核心流程；后 4 个建议顺手装齐。
 
-**转换规则（4 条，与 CLI 内部实现一致）：**
+### 转换规则（供核对，或换其他 AI 工具时自行转换）
+
+源目录：[templates/commands（v1.2.0）](https://github.com/github/spec-kit/tree/v1.2.0/templates/commands)。下面 4 条即上面文件夹的生成规则，与 `specify init --integration gemini --script ps` 的内部实现逐行一致：
 
 1. frontmatter 的 `description:` 一行 → TOML 的 `description` 字段；其余 frontmatter（`handoffs:`、`scripts:`）丢弃
-2. 正文里所有 `$ARGUMENTS` → `{{args}}`
+2. 正文里所有 `$ARGUMENTS` / `{ARGS}` → `{{args}}`
 3. 正文里所有 `{SCRIPT}` → 取**同一个文件** frontmatter `scripts:` 块里 `ps:` 那一行，把开头的 `scripts/` 改为 `.specify/scripts/`。例：`plan.md` 的 `{SCRIPT}` → `.specify/scripts/powershell/setup-plan.ps1 -Json`；`constitution.md` 的 `{SCRIPT}` → `.specify/scripts/powershell/resolve-template.ps1 constitution-template -Json`。正文没有 `{SCRIPT}` 就跳过；正文里若还有其他 `scripts/` 开头的路径引用，同样加 `.specify/` 前缀
 4. 正文里形如 `__SPECKIT_COMMAND_SPECIFY__` 的令牌 → 对应 `/speckit.specify`（同类令牌同理；这是给 AI 看的交叉引用文字）
 
@@ -110,7 +112,7 @@ prompt = """
 """
 ```
 
-两个小坑：某段正文若含反斜杠（正则、路径）或连续三个双引号，把外层换成单引号字面量 `prompt = '''...'''`（TOML 单引号串不转义），即不会解析报错。
+两个小坑（已生成的文件均已处理）：正文里的反斜杠在双引号串中要写成 `\\`；正文含连续三个双引号时，外层改用单引号字面量 `prompt = '''...'''`。
 
 （Gemini CLI 是 commands 布局，命令名用 `.` 分隔；其他工具可能是 `/speckit-xxx` 形式，见官方 integrations 文档。）
 
