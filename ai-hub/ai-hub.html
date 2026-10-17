@@ -5,11 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Hub · 本地工作台</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231F1E1D'/%3E%3Cpath d='M12 5v14M6 8.5l12 7M6 15.5l12-7' stroke='%23FAF9F5' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<script>(function(){try{var t=localStorage.getItem('aihub.theme');if(!t)t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Instrument+Sans:ital,wght@0,400..700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
+  color-scheme:light;
   --paper:#FAF9F5;
   --paper-deep:#F2EFE7;
   --panel:#FFFFFF;
@@ -34,6 +36,54 @@
   --sans:'Instrument Sans',-apple-system,sans-serif;
   --mono:'IBM Plex Mono',Menlo,monospace;
 }
+/* 暗色模式：变量覆盖 + 硬编码颜色修正 */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#211F1E;
+  --paper-deep:#2A2827;
+  --panel:#2E2B29;
+  --ink:#EDEAE2;
+  --ink-2:#B5AFA2;
+  --ink-3:#8A8478;
+  --line:#3A3733;
+  --line-2:#4C4741;
+  --accent:#D87A56;
+  --accent-deep:#E2926E;
+  --accent-soft:#3E2D23;
+  --accent-wash:#352A22;
+  --green:#93B17F;
+  --green-soft:#2F3629;
+  --code-bg:#1B1A19;
+  --code-ink:#DAD5CA;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:0 2px 8px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.4),0 16px 48px rgba(0,0,0,.4);
+}
+:root[data-theme="dark"] .hero{background:linear-gradient(135deg,#2B2826 0%,#352A22 100%)}
+:root[data-theme="dark"] .btn-primary:hover{background:#fff}
+:root[data-theme="dark"] .tag{border-color:#4C3A2C}
+:root[data-theme="dark"] .field input:focus,:root[data-theme="dark"] .field textarea:focus,:root[data-theme="dark"] .field select:focus{background:var(--panel)}
+:root[data-theme="dark"] .blk-edit,:root[data-theme="dark"] .jn-edit{background:var(--panel)}
+:root[data-theme="dark"] .overlay{background:rgba(0,0,0,.55)}
+:root[data-theme="dark"] .lc-del{color:var(--paper)}
+:root[data-theme="dark"] .logo-mark svg path{stroke:#211F1E}
+:root[data-theme="dark"] .json-msg.err{color:#E08A73}
+:root[data-theme="dark"] .json-err{background:#3E2A24;border-color:#5C3A30;color:#E08A73}
+:root[data-theme="dark"] .jn-str,:root[data-theme="dark"] .json-hi .s{color:#9CC28B}
+:root[data-theme="dark"] .jn-num,:root[data-theme="dark"] .json-hi .n{color:#7FB0D8}
+:root[data-theme="dark"] .jn-bool,:root[data-theme="dark"] .json-hi .b{color:#C39BD6}
+:root[data-theme="dark"] .jn-cmt{color:#D9BC7A;background:#3A3323;border-color:#54492B}
+:root[data-theme="dark"] .diff-del{background:#3E2A24}
+:root[data-theme="dark"] .diff-chg{background:#3A3323}
+:root[data-theme="dark"] .diff-del .diff-badge{background:#5C3A30;color:#E8A18A}
+:root[data-theme="dark"] .diff-chg .diff-badge{background:#54492B;color:#D9BC7A}
+/* 主题切换按钮 */
+.theme-btn{width:37px;height:37px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2);background:var(--panel);transition:all .16s;flex-shrink:0}
+.theme-btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.theme-btn svg{width:16px;height:16px}
+.theme-btn .i-sun{display:none}
+:root[data-theme="dark"] .theme-btn .i-sun{display:block}
+:root[data-theme="dark"] .theme-btn .i-moon{display:none}
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6;overflow-x:hidden}
@@ -304,6 +354,18 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
 .diff-chg .diff-badge{background:#EDDFC2;color:#8A6D3B}
 .diff-path{font-family:var(--mono);color:var(--ink);font-weight:500}
 .diff-val{font-family:var(--mono);color:var(--ink-2);word-break:break-all}
+/* json 源码高亮覆盖层 & 高亮输出 */
+.jsrc-wrap{position:relative;flex:1;min-width:0}
+.jsrc-wrap pre.json-hi{position:absolute;inset:0;padding:22px 24px;font-family:var(--mono);font-size:13px;line-height:1.8;white-space:pre-wrap;word-break:break-all;overflow:auto;pointer-events:none;background:transparent;scrollbar-width:none}
+.jsrc-wrap pre.json-hi::-webkit-scrollbar{display:none}
+.jsrc-wrap .json-src{position:absolute;inset:0;width:100%;height:100%;color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--ink);white-space:pre-wrap;word-break:break-all}
+.jsrc-wrap .json-src::placeholder{color:var(--ink-3);-webkit-text-fill-color:var(--ink-3)}
+.json-hi .k{color:var(--accent-deep)}
+.json-hi .s{color:#4E7E4E}
+.json-hi .n{color:#3E6E96}
+.json-hi .b{color:#8E5E9E}
+.code-block .b{color:#C9A0D0}
+.json-two pre.jf-out{min-height:300px;max-height:560px;border-radius:var(--r-sm)}
 /* modal */
 .overlay{position:fixed;inset:0;background:rgba(31,30,29,.32);backdrop-filter:blur(5px);display:none;align-items:flex-start;justify-content:center;padding:7vh 20px;z-index:100;animation:fadeIn .2s ease}
 .overlay.show{display:flex}
@@ -370,10 +432,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
         Docs<span class="count" data-count="docs"></span>
       </button>
+      <button class="nav-item" data-view="jsondocs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/></svg>
+        JSON 文档<span class="count" data-count="jsonDocs"></span>
+      </button>
       <div class="nav-label">扩展</div>
       <button class="nav-item" data-view="json">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/></svg>
-        JSON 工具<span class="count" data-count="jsonDocs"></span>
+        JSON 工具
       </button>
       <button class="nav-item" data-view="tools">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a2 2 0 11-2.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -395,6 +461,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
         <input id="search" type="text" placeholder="搜索当前页面…  / 聚焦">
       </div>
       <div class="spacer" style="flex:1"></div>
+      <button class="theme-btn" id="themeBtn" title="切换深浅模式" aria-label="切换深浅模式">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
       <button class="btn btn-accent" id="addBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         <span id="addLabel">新建</span>
@@ -470,15 +540,28 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
         </div>
       </section>
 
+      <section class="view" id="view-jsondocs">
+        <div class="page-head"><h2>JSON 文档</h2><p>JSON 资产沉淀 · 粘贴自动格式化 · 源码高亮 · 节点注释</p></div>
+        <div class="docs-layout">
+          <div class="docs-tree">
+            <div class="docs-tools">
+              <button class="mini" onclick="newJsonDoc()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新建文档</button>
+            </div>
+            <div class="tree" id="jsonList"></div>
+          </div>
+          <div class="docs-editor" id="jsonEditorPanel"></div>
+        </div>
+      </section>
+
       <section class="view" id="view-json">
         <div class="page-head page-head-row">
-          <div><h2>JSON 工具</h2><p>格式化 · 压缩 · 转义 · 比对 · 增强文档</p></div>
+          <div><h2>JSON 工具</h2><p>格式化 · 压缩 · 转义 · 比对</p></div>
           <div class="toolbar" style="margin:0" id="jsonTabs"></div>
         </div>
         <div class="json-panel hide" id="jsonFormat">
           <div class="json-two">
             <div class="field"><label>输入</label><textarea id="jfIn" placeholder='{ "key": "value" }'></textarea></div>
-            <div class="field"><label>输出</label><textarea id="jfOut" readonly placeholder="结果将显示在这里"></textarea></div>
+            <div class="field"><label>输出</label><pre class="code-block jf-out" id="jfOut"><span style="opacity:.45">结果将显示在这里</span></pre></div>
           </div>
           <div class="json-actions">
             <button class="btn btn-primary btn-sm" onclick="jfmt(2)">格式化</button>
@@ -497,17 +580,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
           <div class="json-actions"><button class="btn btn-accent btn-sm" onclick="jdCompare()">比对</button></div>
           <div class="json-msg" id="jdMsg"></div>
           <div id="jdResult" style="margin-top:14px"></div>
-        </div>
-        <div class="json-panel hide" id="jsonDocsPanel">
-          <div class="docs-layout">
-            <div class="docs-tree">
-              <div class="docs-tools">
-                <button class="mini" onclick="newJsonDoc()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新建文档</button>
-              </div>
-              <div class="tree" id="jsonList"></div>
-            </div>
-            <div class="docs-editor" id="jsonEditorPanel"></div>
-          </div>
         </div>
       </section>
 
@@ -617,12 +689,19 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 let toastT;
 function toast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1800)}
 function copy(text,msg){navigator.clipboard.writeText(text).then(()=>toast(msg||'已复制到剪贴板'))}
+/* ---------- 深浅主题 ---------- */
+const THEME_KEY='aihub.theme';
+function applyTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem(THEME_KEY,t)}catch(e){}}
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
+  applyTheme(next);toast(next==='dark'?'已切换到暗色模式':'已切换到浅色模式');
+});
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('.nav-item');if(b)switchView(b.dataset.view)});
 function switchView(v){view=v;query='';document.getElementById('search').value='';
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===v));
   document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
-  const labels={dashboard:null,skills:'新建 Skill',mcp:'添加服务',prompts:'新建 Prompt',commands:'新建 Command',docs:'新建笔记',json:null,tools:'添加工具'};
+  const labels={dashboard:null,skills:'新建 Skill',mcp:'添加服务',prompts:'新建 Prompt',commands:'新建 Command',docs:'新建笔记',json:null,jsondocs:'新建 JSON 文档',tools:'添加工具'};
   document.getElementById('addBtn').style.display=labels[v]?'inline-flex':'none';
   document.getElementById('addLabel').textContent=labels[v]||'';
   render();}
@@ -637,9 +716,9 @@ const STAT_DEF=[
   {k:'prompts',label:'Prompts',icon:'<path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>'},
   {k:'commands',label:'Commands',icon:'<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>'},
   {k:'docs',label:'Docs 笔记',icon:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>'},
-  {k:'jsonDocs',label:'JSON 文档',icon:'<path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/>'},
+  {k:'jsondocs',label:'JSON 文档',icon:'<path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/>'},
 ];
-function itemTotal(k){return k==='docs'?docsTotal():DB[k].length}
+function itemTotal(k){return k==='docs'?docsTotal():k==='jsondocs'?DB.jsonDocs.length:DB[k].length}
 function renderDash(){
   const h=new Date().getHours();
   document.getElementById('greet').innerHTML=(h<6?'夜深了，':h<12?'早上好，':h<18?'下午好，':'晚上好，')+'<em>欢迎回来</em>';
@@ -902,7 +981,7 @@ function saveTool(id){
   save();closeModal();render();toast('已保存');
 }
 document.getElementById('addBtn').addEventListener('click',()=>{
-  ({skills:()=>editSkill(),mcp:()=>editMcp(),prompts:()=>editPrompt(),commands:()=>editCommand(),docs:()=>newNote(null),tools:()=>editTool()}[view]||(()=>{}))();
+  ({skills:()=>editSkill(),mcp:()=>editMcp(),prompts:()=>editPrompt(),commands:()=>editCommand(),docs:()=>newNote(null),jsondocs:()=>newJsonDoc(),tools:()=>editTool()}[view]||(()=>{}))();
 });
 /* ---------- docs: markdown 渲染 ---------- */
 function mdRender(src){
@@ -1221,38 +1300,58 @@ function delNode(id){
 let jTab='format', jSel=null, jMode='view', jUnlocked=false, jExpand={}, jAddSegs=null;
 const ICO_COPY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
 const ICO_MSG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="15" x2="12.01" y2="15"/></svg>';
-const JTABS=[['format','快速格式化'],['diff','比对'],['docs','JSON 文档']];
+const JTABS=[['format','快速格式化'],['diff','比对']];
 function jCur(){return DB.jsonDocs.find(d=>d.id===jSel)}
 function renderJson(){
   document.getElementById('jsonTabs').innerHTML=JTABS.map(([k,t])=>`<span class="chip ${jTab===k?'on':''}" data-jtab="${k}">${t}</span>`).join('');
   document.querySelectorAll('[data-jtab]').forEach(c=>c.onclick=()=>{jTab=c.dataset.jtab;renderJson()});
   document.getElementById('jsonFormat').classList.toggle('hide',jTab!=='format');
   document.getElementById('jsonDiff').classList.toggle('hide',jTab!=='diff');
-  document.getElementById('jsonDocsPanel').classList.toggle('hide',jTab!=='docs');
-  document.querySelectorAll('[data-count="jsonDocs"]').forEach(c=>c.textContent=DB.jsonDocs.length);
-  if(jTab==='docs'){
-    if(!jSel&&DB.jsonDocs.length)jSel=DB.jsonDocs[0].id;
-    renderJList();renderJEditor();
-  }
 }
-function setJMode(m){jMode=m;renderJson()}
+function renderJsonDocs(){
+  document.querySelectorAll('[data-count="jsonDocs"]').forEach(c=>c.textContent=DB.jsonDocs.length);
+  if(!jSel&&DB.jsonDocs.length)jSel=DB.jsonDocs[0].id;
+  renderJList();renderJEditor();
+}
+function setJMode(m){jMode=m;renderJsonDocs()}
+/* JSON 语法高亮：键 k / 字符串 s / 数字 n / 布尔与 null b */
+function jsonHi(src){
+  src=String(src??'');
+  const re=/("(?:\\.|[^"\\])*")(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g;
+  let out='',last=0,m;
+  while((m=re.exec(src))){
+    out+=esc(src.slice(last,m.index));
+    const prev=m.index>0?src[m.index-1]:'';
+    if(m[1]!==undefined){
+      out+=m[2]?'<span class="k">'+esc(m[1])+'</span>'+m[2]:'<span class="s">'+esc(m[1])+'</span>';
+    }else if(/[\w$]/.test(prev)){
+      out+=esc(m[0]);
+    }else if(m[0]==='true'||m[0]==='false'||m[0]==='null'){
+      out+='<span class="b">'+m[0]+'</span>';
+    }else out+='<span class="n">'+m[0]+'</span>';
+    last=m.index+m[0].length;
+  }
+  return out+esc(src.slice(last));
+}
 function jfmt(space){
   const msg=document.getElementById('jfMsg');
   try{const o=JSON.parse(document.getElementById('jfIn').value);
-    document.getElementById('jfOut').value=JSON.stringify(o,null,space);
+    document.getElementById('jfOut').innerHTML=jsonHi(JSON.stringify(o,null,space));
     msg.textContent='✓ 合法 JSON，已'+(space?'格式化':'压缩');msg.className='json-msg ok';
   }catch(e){msg.textContent='✗ 不是合法 JSON：'+e.message;msg.className='json-msg err'}
 }
-function jesc(){document.getElementById('jfOut').value=JSON.stringify(document.getElementById('jfIn').value);
+function jesc(){document.getElementById('jfOut').innerHTML=jsonHi(JSON.stringify(document.getElementById('jfIn').value));
   const msg=document.getElementById('jfMsg');msg.textContent='✓ 已转义为 JSON 字符串';msg.className='json-msg ok'}
 function junes(){
   const msg=document.getElementById('jfMsg');const raw=document.getElementById('jfIn').value;
   try{const o=JSON.parse(raw);
-    document.getElementById('jfOut').value=typeof o==='string'?o:JSON.stringify(o,null,2);
+    document.getElementById('jfOut').innerHTML=jsonHi(typeof o==='string'?o:JSON.stringify(o,null,2));
     msg.textContent='✓ 已还原';msg.className='json-msg ok';
   }catch(e){msg.textContent='✗ 无法解析：'+e.message;msg.className='json-msg err'}
 }
-function copyJfOut(){const v=document.getElementById('jfOut').value;if(!v)return toast('输出为空');copy(v,'输出已复制')}
+function copyJfOut(){const v=document.getElementById('jfOut').textContent;if(!v||v==='结果将显示在这里')return toast('输出为空');copy(v,'输出已复制')}
+/* 快速格式化：粘贴到输入框后自动执行格式化 */
+document.getElementById('jfIn').addEventListener('paste',()=>{setTimeout(()=>{if(document.getElementById('jfIn').value.trim())jfmt(2)},0)});
 function jType(v){return v===null?'null':Array.isArray(v)?'array':typeof v==='object'?'object':'value'}
 function diffWalk(a,b,p,out){
   const ta=jType(a),tb=jType(b);
@@ -1289,21 +1388,41 @@ function jdCompare(){
 }
 function newJsonDoc(){askName('新建 JSON 文档','',name=>{
   const doc={id:uid(),name,updatedAt:Date.now(),content:'{\n  "key": "value"\n}',comments:{}};
-  DB.jsonDocs.unshift(doc);jSel=doc.id;jMode='view';jExpand={};
-  save();if(view==='json'&&jTab==='docs'){renderJson()}else{switchView('json');jTab='docs';renderJson()}
-  toast('已创建')})}
-function jRename(id){const d=DB.jsonDocs.find(x=>x.id===id);if(!d)return;askName('重命名',d.name,v=>{d.name=v;d.updatedAt=Date.now();save();renderJson()})}
+  DB.jsonDocs.unshift(doc);jSel=doc.id;jMode='source';jExpand={};
+  save();if(view==='jsondocs')renderJsonDocs();else switchView('jsondocs');
+  requestAnimationFrame(()=>document.getElementById('jsonSrc')?.focus());
+  toast('已创建，直接粘贴 JSON 即可自动格式化')})}
+function jRename(id){const d=DB.jsonDocs.find(x=>x.id===id);if(!d)return;askName('重命名',d.name,v=>{d.name=v;d.updatedAt=Date.now();save();render()})}
 function jDelDoc(id){
   if(!confirm('删除该 JSON 文档？'))return;
   DB.jsonDocs=DB.jsonDocs.filter(x=>x.id!==id);
   if(jSel===id)jSel=DB.jsonDocs[0]?.id||null;
-  save();renderJson();toast('已删除');
+  save();render();toast('已删除');
 }
 function copyJ(){const d=jCur();if(d)copy(d.content,'原始 JSON 已复制')}
+/* JSON 文档视图内：无需先点击编辑器，页面内直接粘贴即写入当前文档并自动格式化 */
+document.addEventListener('paste',e=>{
+  if(view!=='jsondocs')return;
+  const ae=document.activeElement;
+  if(ae&&ae!==document.body&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable))return;
+  const txt=(e.clipboardData||window.clipboardData)?.getData('text');
+  if(!txt||!txt.trim())return;
+  let obj;try{obj=JSON.parse(txt)}catch(err){toast('剪贴板不是合法 JSON');return}
+  if(!jCur()){
+    const doc={id:uid(),name:'粘贴文档',updatedAt:Date.now(),content:'{\n  "key": "value"\n}',comments:{}};
+    DB.jsonDocs.unshift(doc);jSel=doc.id;
+  }
+  const doc=jCur();
+  const cur=(doc.content||'').trim();
+  if(cur&&cur!=='{\n  "key": "value"\n}'&&!confirm('文档「'+doc.name+'」已有内容，粘贴将替换全部内容，继续？'))return;
+  e.preventDefault();
+  doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();jExpand={};save();
+  renderJsonDocs();toast('已自动格式化');
+});
 function renderJList(){
   const list=DB.jsonDocs.filter(d=>!query||d.name.toLowerCase().includes(query));
   document.getElementById('jsonList').innerHTML=(list.length?list.map(d=>`
-    <div class="tree-row ${d.id===jSel?'sel':''}" data-id="${d.id}" onclick="jSel='${d.id}';jMode='view';renderJson()">
+    <div class="tree-row ${d.id===jSel?'sel':''}" data-id="${d.id}" onclick="jSel='${d.id}';jMode='view';renderJsonDocs()">
       ${ICO_DOC}
       <span class="t-name">${esc(d.name)}</span>
       <span class="t-acts">
@@ -1372,16 +1491,36 @@ function renderJEditor(){
       <button class="icon-btn" id="jCopyBtn" title="复制原始 JSON">${ICO_COPY}</button>
     </div>
     <div class="de-body">`+(jMode==='source'
-      ?'<textarea id="jsonSrc" class="json-src" spellcheck="false" placeholder=\'{ "key": "value" }\'></textarea>'
+      ?'<div class="jsrc-wrap"><pre class="json-hi" id="jsonHi" aria-hidden="true"></pre><textarea id="jsonSrc" class="json-src" spellcheck="false" placeholder=\'{ "key": "value" }\'></textarea></div>'
       :'<div id="jsonTreeWrap" class="jtree '+(jUnlocked?'jun':'')+'"></div>')+`</div>`;
-  document.getElementById('jLiveToggle')?.addEventListener('click',()=>{jUnlocked=!jUnlocked;renderJson();toast(jUnlocked?'已解锁：点击节点编辑，悬停显示操作':'预览已锁定')});
+  document.getElementById('jLiveToggle')?.addEventListener('click',()=>{jUnlocked=!jUnlocked;renderJsonDocs();toast(jUnlocked?'已解锁：点击节点编辑，悬停显示操作':'预览已锁定')});
   document.getElementById('jCopyBtn')?.addEventListener('click',copyJ);
   if(jMode==='source'){
     const ta=document.getElementById('jsonSrc');
+    const hi=document.getElementById('jsonHi');
+    const syncHi=()=>{hi.innerHTML=jsonHi(ta.value)+'\n'};
     ta.value=doc.content||'';
+    syncHi();
+    ta.addEventListener('input',syncHi);
+    ta.addEventListener('scroll',()=>{hi.scrollTop=ta.scrollTop;hi.scrollLeft=ta.scrollLeft});
     let t;
     ta.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>{doc.content=ta.value;doc.updatedAt=Date.now();save();
       const meta=panel.querySelector('.de-meta');if(meta)meta.textContent=fmtTime(doc.updatedAt)},400)});
+    // 初次粘贴（空文档或默认模板）时自动快速格式化
+    ta.addEventListener('paste',e=>{
+      const txt=(e.clipboardData||window.clipboardData).getData('text');
+      if(!txt)return;
+      const cur=ta.value.trim();
+      if(cur&&cur!=='{\n  "key": "value"\n}')return;
+      let obj;try{obj=JSON.parse(txt)}catch(err){return}
+      e.preventDefault();
+      const f=JSON.stringify(obj,null,2);
+      ta.value=f;syncHi();
+      doc.content=f;doc.updatedAt=Date.now();save();
+      const meta=panel.querySelector('.de-meta');if(meta)meta.textContent=fmtTime(doc.updatedAt);
+      ta.setSelectionRange(f.length,f.length);
+      toast('已自动格式化');
+    });
   }else{
     renderJTree(panel.querySelector('#jsonTreeWrap'),doc);
   }
@@ -1455,7 +1594,7 @@ function addJChildSave(){
   }
   doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();save();
   jExpand[JSON.stringify(jAddSegs)]=true;
-  closeModal();renderJson();toast('已添加');
+  closeModal();renderJsonDocs();toast('已添加');
 }
 function delJNode(pathStr){
   const segs=JSON.parse(pathStr);
@@ -1464,7 +1603,7 @@ function delJNode(pathStr){
   const doc=jCur();let obj;try{obj=JSON.parse(doc.content)}catch(e){return toast('JSON 不合法')}
   delIn(obj,segs);cleanComments(doc,segs);
   doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();save();
-  renderJson();toast('已删除');
+  renderJsonDocs();toast('已删除');
 }
 function editJComment(pathStr){
   const doc=jCur();
@@ -1480,7 +1619,7 @@ function saveJComment(pathStr){
   doc.comments=doc.comments||{};
   if(v)doc.comments[pathStr]=v;else delete doc.comments[pathStr];
   doc.updatedAt=Date.now();save();
-  closeModal();renderJson();toast(v?'注释已保存':'注释已删除');
+  closeModal();renderJsonDocs();toast(v?'注释已保存':'注释已删除');
 }
 /* ---------- export / import ---------- */
 function exportData(){
@@ -1496,7 +1635,7 @@ function importData(){
 /* ---------- render dispatch ---------- */
 function render(){
   renderDash();
-  ({skills:renderSkills,mcp:renderMcp,prompts:renderPrompts,commands:renderCmds,docs:renderDocs,json:renderJson,tools:renderTools}[view]||(()=>{}))();
+  ({skills:renderSkills,mcp:renderMcp,prompts:renderPrompts,commands:renderCmds,docs:renderDocs,json:renderJson,jsondocs:renderJsonDocs,tools:renderTools}[view]||(()=>{}))();
 }
 render();
 </script>
