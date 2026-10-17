@@ -84,6 +84,13 @@
 .theme-btn .i-sun{display:none}
 :root[data-theme="dark"] .theme-btn .i-sun{display:block}
 :root[data-theme="dark"] .theme-btn .i-moon{display:none}
+/* 新建文档：格式选择 */
+.fmt-pick{display:flex;flex-direction:column;gap:10px}
+.fmt-opt{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel);text-align:left;transition:all .15s;width:100%}
+.fmt-opt:hover{border-color:var(--accent);background:var(--accent-wash);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.fmt-opt svg{width:20px;height:20px;flex-shrink:0;color:var(--accent-deep);margin-top:2px}
+.fmt-opt b{display:block;font-size:14px;margin-bottom:2px}
+.fmt-opt p{font-size:12px;color:var(--ink-3);line-height:1.55}
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6;overflow-x:hidden}
@@ -432,10 +439,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
         Docs<span class="count" data-count="docs"></span>
       </button>
-      <button class="nav-item" data-view="jsondocs">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/></svg>
-        JSON 文档<span class="count" data-count="jsonDocs"></span>
-      </button>
       <div class="nav-label">扩展</div>
       <button class="nav-item" data-view="json">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/></svg>
@@ -527,29 +530,16 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
       </section>
 
       <section class="view" id="view-docs">
-        <div class="page-head"><h2>Docs</h2><p>多级目录笔记 · Markdown 格式 · 拖拽整理 · 自动保存</p></div>
+        <div class="page-head"><h2>Docs</h2><p>多级目录文档 · Markdown / JSON 双格式 · 拖拽整理 · 自动保存</p></div>
         <div class="docs-layout">
           <div class="docs-tree">
             <div class="docs-tools">
-              <button class="mini" onclick="newNote(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>笔记</button>
+              <button class="mini" onclick="newNote(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新建笔记</button>
               <button class="mini" onclick="newFolder(null)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/></svg>文件夹</button>
             </div>
             <div class="tree" id="docTree"></div>
           </div>
           <div class="docs-editor" id="docEditorPanel"></div>
-        </div>
-      </section>
-
-      <section class="view" id="view-jsondocs">
-        <div class="page-head"><h2>JSON 文档</h2><p>JSON 资产沉淀 · 粘贴自动格式化 · 源码高亮 · 节点注释</p></div>
-        <div class="docs-layout">
-          <div class="docs-tree">
-            <div class="docs-tools">
-              <button class="mini" onclick="newJsonDoc()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新建文档</button>
-            </div>
-            <div class="tree" id="jsonList"></div>
-          </div>
-          <div class="docs-editor" id="jsonEditorPanel"></div>
         </div>
       </section>
 
@@ -657,6 +647,7 @@ function seed(){
     docs:[
       {id:uid(),name:'欢迎',type:'folder',open:true,children:[
         {id:uid(),name:'使用指南',type:'note',updatedAt:Date.now(),content:'# 欢迎使用 Docs\n\n这里是 AI Hub 的内置笔记，支持 **多级目录** 与 Markdown 书写。\n\n## 基本操作\n\n- 左侧目录树支持 **拖拽** 整理\n- 悬停文件夹行可新建子笔记 / 子文件夹\n- 编辑自动保存，右上角可切换 源码 / 预览\n\n## Markdown 支持\n\n1. 行内语法：**加粗**、*斜体*、~~删除线~~、`行内代码`\n2. 任务清单：\n   - [x] 多级目录\n   - [x] Markdown 渲染\n   - [ ] 你的第一条笔记\n3. 代码块、表格、引用\n\n> 提示：顶部搜索框可以直接搜笔记名称与内容。\n\n```js\nconsole.log("Hello AI Hub");\n```\n\n| 语法 | 说明 |\n| --- | --- |\n| # | 标题 |\n| - / 1. | 列表 |\n| > | 引用 |\n'},
+        {id:uid(),name:'示例配置',type:'note',fmt:'json',updatedAt:Date.now(),content:JSON.stringify({name:'ai-hub',version:'1.0.0',features:{skills:true,mcp:false},tags:['local','ai']},null,2),comments:{'["features"]':'核心功能开关'}},
       ]},
       {id:uid(),name:'AI 笔记',type:'folder',open:true,children:[
         {id:uid(),name:'MCP',type:'folder',open:false,children:[
@@ -664,9 +655,6 @@ function seed(){
         ]},
         {id:uid(),name:'Prompt 技巧',type:'note',updatedAt:Date.now(),content:'# Prompt 技巧\n\n- 明确角色与目标\n- 给出示例（few-shot）\n- 规定输出格式\n- 拆解复杂任务\n'},
       ]},
-    ],
-    jsonDocs:[
-      {id:uid(),name:'示例配置',updatedAt:Date.now(),content:JSON.stringify({name:'ai-hub',version:'1.0.0',features:{skills:true,mcp:false},tags:['local','ai']},null,2),comments:{'["features"]':'核心功能开关'}},
     ],
   };
 }
@@ -681,8 +669,15 @@ const TPL={
 let DB=load();
 let view='dashboard', query='', filter='all', selMcp=null, editingLinks=false;
 function load(){let d=null;try{d=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-  if(d&&d.skills){if(!d.docs)d.docs=seed().docs;if(!d.jsonDocs)d.jsonDocs=seed().jsonDocs;return d}
+  if(d&&d.skills){if(!d.docs)d.docs=seed().docs;migrateJsonDocs(d);return d}
   const s=seed();localStorage.setItem(KEY,JSON.stringify(s));return s}
+/* 旧版独立 jsonDocs 合并进 docs 目录树（fmt:'json'） */
+function migrateJsonDocs(d){
+  if(!d.jsonDocs)return;
+  d.jsonDocs.forEach(j=>d.docs.unshift({id:j.id||uid(),name:j.name,type:'note',fmt:'json',updatedAt:j.updatedAt||Date.now(),content:j.content,comments:j.comments||{}}));
+  delete d.jsonDocs;
+  try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}
+}
 function save(){localStorage.setItem(KEY,JSON.stringify(DB))}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -701,7 +696,7 @@ function switchView(v){view=v;query='';document.getElementById('search').value='
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===v));
   document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
-  const labels={dashboard:null,skills:'新建 Skill',mcp:'添加服务',prompts:'新建 Prompt',commands:'新建 Command',docs:'新建笔记',json:null,jsondocs:'新建 JSON 文档',tools:'添加工具'};
+  const labels={dashboard:null,skills:'新建 Skill',mcp:'添加服务',prompts:'新建 Prompt',commands:'新建 Command',docs:'新建笔记',json:null,tools:'添加工具'};
   document.getElementById('addBtn').style.display=labels[v]?'inline-flex':'none';
   document.getElementById('addLabel').textContent=labels[v]||'';
   render();}
@@ -715,10 +710,9 @@ const STAT_DEF=[
   {k:'mcp',label:'MCP 服务',icon:'<circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v3a3 3 0 003 3h6"/>'},
   {k:'prompts',label:'Prompts',icon:'<path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>'},
   {k:'commands',label:'Commands',icon:'<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>'},
-  {k:'docs',label:'Docs 笔记',icon:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>'},
-  {k:'jsondocs',label:'JSON 文档',icon:'<path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/>'},
+  {k:'docs',label:'Docs 文档',icon:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>'},
 ];
-function itemTotal(k){return k==='docs'?docsTotal():k==='jsondocs'?DB.jsonDocs.length:DB[k].length}
+function itemTotal(k){return k==='docs'?docsTotal():DB[k].length}
 function renderDash(){
   const h=new Date().getHours();
   document.getElementById('greet').innerHTML=(h<6?'夜深了，':h<12?'早上好，':h<18?'下午好，':'晚上好，')+'<em>欢迎回来</em>';
@@ -981,7 +975,7 @@ function saveTool(id){
   save();closeModal();render();toast('已保存');
 }
 document.getElementById('addBtn').addEventListener('click',()=>{
-  ({skills:()=>editSkill(),mcp:()=>editMcp(),prompts:()=>editPrompt(),commands:()=>editCommand(),docs:()=>newNote(null),jsondocs:()=>newJsonDoc(),tools:()=>editTool()}[view]||(()=>{}))();
+  ({skills:()=>editSkill(),mcp:()=>editMcp(),prompts:()=>editPrompt(),commands:()=>editCommand(),docs:()=>newNote(null),tools:()=>editTool()}[view]||(()=>{}))();
 });
 /* ---------- docs: markdown 渲染 ---------- */
 function mdRender(src){
@@ -1049,6 +1043,7 @@ function docsTotal(){return DB.docs.reduce((s,n)=>s+countNotes(n),0)}
 function isAncestor(node,id){if(node.id===id)return true;if(!node.children)return false;return node.children.some(c=>isAncestor(c,id))}
 function fmtTime(ts){const d=new Date(ts||Date.now());return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
 const ICO_DOC='<svg class="f-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+const ICO_JSON='<svg class="f-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/></svg>';
 const ICO_FOLDER='<svg class="f-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/></svg>';
 const ICO_PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const ICO_EDIT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>';
@@ -1076,7 +1071,7 @@ function renderDocs(){
 }
 function noteRow(n){
   return `<div class="tree-row ${selDoc===n.id?'sel':''}" draggable="true" data-id="${n.id}" onclick="selectNote('${n.id}')">
-    <span class="tw"></span>${ICO_DOC}
+    <span class="tw"></span>${n.fmt==='json'?ICO_JSON:ICO_DOC}
     <span class="t-name">${esc(n.name)}</span>
     <span class="t-acts">
       <button class="icon-btn" title="重命名" onclick="event.stopPropagation();renameNode('${n.id}')">${ICO_EDIT}</button>
@@ -1084,7 +1079,7 @@ function noteRow(n){
     </span>
   </div>`;
 }
-function selectNote(id){if(selDoc===id)return;selDoc=id;renderDocs()}
+function selectNote(id){if(selDoc===id)return;const r=findNode(DB.docs,id);if(r&&r.n.type==='note'&&r.n.fmt==='json')jMode='view';selDoc=id;renderDocs()}
 function treeHtml(n){
   if(n.type==='folder'){
     const open=n.open!==false;
@@ -1189,6 +1184,7 @@ function renderDocEditor(){
     panel.innerHTML='<div class="empty" style="margin:auto;padding:70px 20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;opacity:.4;margin-bottom:10px"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><p>左侧选择或新建一条笔记</p></div>';
     return;
   }
+  if(note.fmt==='json'){renderJEditor(note);return}
   panel.innerHTML=`
     <div class="de-head">
       <span class="de-title">${esc(note.name)}</span>
@@ -1275,13 +1271,34 @@ function askName(title,val,cb){nameCb=cb;openModal(`
   <div class="modal-body"><div class="field"><label>名称</label><input id="f-nname" value="${esc(val||'')}" placeholder="输入名称"></div></div>
   <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="submitName()">确定</button></div>`)}
 function submitName(){const v=document.getElementById('f-nname').value.trim();if(!v){toast('请填写名称');return}closeModal();const cb=nameCb;nameCb=null;cb&&cb(v)}
-function newNote(folderId){askName('新建笔记','',name=>{
-  const d=new Date(),p=n=>String(n).padStart(2,'0');
-  const now=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
-  const note={id:uid(),name,type:'note',updatedAt:Date.now(),content:'---\ndescription: \ntags: \ncreated: '+now+'\n---\n\n# '+name+'\n\n'};
-  if(folderId){const f=findNode(DB.docs,folderId);if(f){(f.n.children=f.n.children||[]).push(note);f.n.open=true}else DB.docs.push(note)}
-  else DB.docs.push(note);
-  selDoc=note.id;save();if(view==='docs')renderDocs();else switchView('docs');toast('已创建')})}
+function newNote(folderId){
+  const fid=folderId||'';
+  openModal(`
+    <div class="modal-head"><h3>新建笔记</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body"><div class="fmt-pick">
+      <button class="fmt-opt" onclick="createNote('md','${fid}')">${ICO_DOC}<span><b>Markdown 笔记</b><p>标题 / 列表 / 代码块 / 表格，支持块级所见即所得编辑，自动生成 frontmatter 模板</p></span></button>
+      <button class="fmt-opt" onclick="createNote('json','${fid}')">${ICO_JSON}<span><b>JSON 文档</b><p>源码语法高亮、粘贴自动格式化、树形预览、节点编辑与注释</p></span></button>
+    </div></div>`);
+}
+function createNote(fmt,folderId){
+  closeModal();
+  askName(fmt==='json'?'新建 JSON 文档':'新建 Markdown 笔记','',name=>{
+    let note;
+    if(fmt==='json'){
+      note={id:uid(),name,type:'note',fmt:'json',updatedAt:Date.now(),content:'{\n  "key": "value"\n}',comments:{}};
+    }else{
+      const d=new Date(),p=n=>String(n).padStart(2,'0');
+      const now=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+      note={id:uid(),name,type:'note',updatedAt:Date.now(),content:'---\ndescription: \ntags: \ncreated: '+now+'\n---\n\n# '+name+'\n\n'};
+    }
+    if(folderId){const f=findNode(DB.docs,folderId);if(f){(f.n.children=f.n.children||[]).push(note);f.n.open=true}else DB.docs.push(note)}
+    else DB.docs.push(note);
+    selDoc=note.id;
+    if(fmt==='json'){jMode='source';jExpand={};jUnlocked=false}
+    save();if(view==='docs')renderDocs();else switchView('docs');
+    if(fmt==='json')requestAnimationFrame(()=>document.getElementById('jsonSrc')?.focus());
+    toast('已创建'+(fmt==='json'?'，直接粘贴 JSON 即可自动格式化':''))});
+}
 function newFolder(folderId){askName('新建文件夹','',name=>{
   const node={id:uid(),name,type:'folder',open:true,children:[]};
   if(folderId){const f=findNode(DB.docs,folderId);if(f){(f.n.children=f.n.children||[]).push(node);f.n.open=true}else DB.docs.push(node)}
@@ -1297,23 +1314,18 @@ function delNode(id){
   save();render();toast('已删除');
 }
 /* ---------- json 工具 ---------- */
-let jTab='format', jSel=null, jMode='view', jUnlocked=false, jExpand={}, jAddSegs=null;
+let jTab='format', jMode='view', jUnlocked=false, jExpand={}, jAddSegs=null;
 const ICO_COPY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
 const ICO_MSG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="15" x2="12.01" y2="15"/></svg>';
 const JTABS=[['format','快速格式化'],['diff','比对']];
-function jCur(){return DB.jsonDocs.find(d=>d.id===jSel)}
+function jCur(){const n=currentNote();return n&&n.fmt==='json'?n:null}
 function renderJson(){
   document.getElementById('jsonTabs').innerHTML=JTABS.map(([k,t])=>`<span class="chip ${jTab===k?'on':''}" data-jtab="${k}">${t}</span>`).join('');
   document.querySelectorAll('[data-jtab]').forEach(c=>c.onclick=()=>{jTab=c.dataset.jtab;renderJson()});
   document.getElementById('jsonFormat').classList.toggle('hide',jTab!=='format');
   document.getElementById('jsonDiff').classList.toggle('hide',jTab!=='diff');
 }
-function renderJsonDocs(){
-  document.querySelectorAll('[data-count="jsonDocs"]').forEach(c=>c.textContent=DB.jsonDocs.length);
-  if(!jSel&&DB.jsonDocs.length)jSel=DB.jsonDocs[0].id;
-  renderJList();renderJEditor();
-}
-function setJMode(m){jMode=m;renderJsonDocs()}
+function setJMode(m){jMode=m;renderDocs()}
 /* JSON 语法高亮：键 k / 字符串 s / 数字 n / 布尔与 null b */
 function jsonHi(src){
   src=String(src??'');
@@ -1386,52 +1398,22 @@ function jdCompare(){
     return '<div class="diff-row '+cls+'"><span class="diff-badge">'+badge+'</span><span class="diff-path">'+esc(r.p)+'</span><span class="diff-val">'+val+'</span></div>';
   }).join('');
 }
-function newJsonDoc(){askName('新建 JSON 文档','',name=>{
-  const doc={id:uid(),name,updatedAt:Date.now(),content:'{\n  "key": "value"\n}',comments:{}};
-  DB.jsonDocs.unshift(doc);jSel=doc.id;jMode='source';jExpand={};
-  save();if(view==='jsondocs')renderJsonDocs();else switchView('jsondocs');
-  requestAnimationFrame(()=>document.getElementById('jsonSrc')?.focus());
-  toast('已创建，直接粘贴 JSON 即可自动格式化')})}
-function jRename(id){const d=DB.jsonDocs.find(x=>x.id===id);if(!d)return;askName('重命名',d.name,v=>{d.name=v;d.updatedAt=Date.now();save();render()})}
-function jDelDoc(id){
-  if(!confirm('删除该 JSON 文档？'))return;
-  DB.jsonDocs=DB.jsonDocs.filter(x=>x.id!==id);
-  if(jSel===id)jSel=DB.jsonDocs[0]?.id||null;
-  save();render();toast('已删除');
-}
 function copyJ(){const d=jCur();if(d)copy(d.content,'原始 JSON 已复制')}
-/* JSON 文档视图内：无需先点击编辑器，页面内直接粘贴即写入当前文档并自动格式化 */
+/* Docs 视图 + 当前为 JSON 文档时：页面内直接粘贴即写入当前文档并自动格式化 */
 document.addEventListener('paste',e=>{
-  if(view!=='jsondocs')return;
+  if(view!=='docs')return;
+  const doc=jCur();if(!doc)return;
   const ae=document.activeElement;
   if(ae&&ae!==document.body&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable))return;
   const txt=(e.clipboardData||window.clipboardData)?.getData('text');
   if(!txt||!txt.trim())return;
   let obj;try{obj=JSON.parse(txt)}catch(err){toast('剪贴板不是合法 JSON');return}
-  if(!jCur()){
-    const doc={id:uid(),name:'粘贴文档',updatedAt:Date.now(),content:'{\n  "key": "value"\n}',comments:{}};
-    DB.jsonDocs.unshift(doc);jSel=doc.id;
-  }
-  const doc=jCur();
   const cur=(doc.content||'').trim();
   if(cur&&cur!=='{\n  "key": "value"\n}'&&!confirm('文档「'+doc.name+'」已有内容，粘贴将替换全部内容，继续？'))return;
   e.preventDefault();
   doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();jExpand={};save();
-  renderJsonDocs();toast('已自动格式化');
+  renderDocs();toast('已自动格式化');
 });
-function renderJList(){
-  const list=DB.jsonDocs.filter(d=>!query||d.name.toLowerCase().includes(query));
-  document.getElementById('jsonList').innerHTML=(list.length?list.map(d=>`
-    <div class="tree-row ${d.id===jSel?'sel':''}" data-id="${d.id}" onclick="jSel='${d.id}';jMode='view';renderJsonDocs()">
-      ${ICO_DOC}
-      <span class="t-name">${esc(d.name)}</span>
-      <span class="t-acts">
-        <button class="icon-btn" title="重命名" onclick="event.stopPropagation();jRename('${d.id}')">${ICO_EDIT}</button>
-        <button class="icon-btn danger" title="删除" onclick="event.stopPropagation();jDelDoc('${d.id}')">${ICO_TRASH}</button>
-      </span>
-    </div>`).join(''):'<div class="empty" style="padding:26px 8px"><p>暂无文档</p></div>')
-    +'<div class="tree-row" style="justify-content:center;border-style:dashed;color:var(--ink-3)" onclick="newJsonDoc()">＋ 新建</div>';
-}
 function getIn(o,segs){return segs.reduce((v,s)=>v==null?v:v[s],o)}
 function setIn(o,segs,v){const p=getIn(o,segs.slice(0,-1));const last=segs[segs.length-1];if(Array.isArray(p))p[Number(last)]=v;else p[last]=v}
 function delIn(o,segs){const p=getIn(o,segs.slice(0,-1));const last=segs[segs.length-1];if(Array.isArray(p))p.splice(Number(last),1);else delete p[last]}
@@ -1475,13 +1457,8 @@ function jNode(val,key,segs,depth){
   }
   return row;
 }
-function renderJEditor(){
-  const panel=document.getElementById('jsonEditorPanel');
-  const doc=jCur();
-  if(!doc){
-    panel.innerHTML='<div class="empty" style="margin:auto;padding:70px 20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;opacity:.4;margin-bottom:10px"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/></svg><p>左侧选择或新建一个 JSON 文档</p></div>';
-    return;
-  }
+function renderJEditor(doc){
+  const panel=document.getElementById('docEditorPanel');
   panel.innerHTML=`
     <div class="de-head">
       <span class="de-title">${esc(doc.name)}</span>
@@ -1493,7 +1470,7 @@ function renderJEditor(){
     <div class="de-body">`+(jMode==='source'
       ?'<div class="jsrc-wrap"><pre class="json-hi" id="jsonHi" aria-hidden="true"></pre><textarea id="jsonSrc" class="json-src" spellcheck="false" placeholder=\'{ "key": "value" }\'></textarea></div>'
       :'<div id="jsonTreeWrap" class="jtree '+(jUnlocked?'jun':'')+'"></div>')+`</div>`;
-  document.getElementById('jLiveToggle')?.addEventListener('click',()=>{jUnlocked=!jUnlocked;renderJsonDocs();toast(jUnlocked?'已解锁：点击节点编辑，悬停显示操作':'预览已锁定')});
+  document.getElementById('jLiveToggle')?.addEventListener('click',()=>{jUnlocked=!jUnlocked;renderDocs();toast(jUnlocked?'已解锁：点击节点编辑，悬停显示操作':'预览已锁定')});
   document.getElementById('jCopyBtn')?.addEventListener('click',copyJ);
   if(jMode==='source'){
     const ta=document.getElementById('jsonSrc');
@@ -1536,7 +1513,7 @@ function renderJTree(wrap,doc){
       if(e.target.closest('[data-act]'))return;
       const cmtEl=e.target.closest('.jn-cmt');
       if(cmtEl){if(jUnlocked)editJComment(row.dataset.path);return}
-      if(row.dataset.kind!=='val'){const p=row.dataset.path;jExpand[p]=!row.classList.contains('open');renderJEditor()}
+      if(row.dataset.kind!=='val'){const p=row.dataset.path;jExpand[p]=!row.classList.contains('open');renderJEditor(jCur())}
       else if(jUnlocked)editJValue(segs,row);
     });
     row.querySelectorAll('[data-act]').forEach(btn=>btn.addEventListener('click',e=>{
@@ -1558,12 +1535,12 @@ function editJValue(segs,row){
   span.replaceWith(inp);inp.focus();inp.select();
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.dataset.cancel='1';inp.blur()}});
   inp.addEventListener('blur',()=>{
-    if(inp.dataset.cancel){renderJEditor();return}
+    if(inp.dataset.cancel){renderJEditor(jCur());return}
     let v;const txt=inp.value.trim();
     try{v=JSON.parse(txt)}catch(e){v=inp.value}
-    try{setIn(obj,segs,v)}catch(e){toast('设置失败');renderJEditor();return}
+    try{setIn(obj,segs,v)}catch(e){toast('设置失败');renderJEditor(jCur());return}
     doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();save();
-    renderJEditor();
+    renderJEditor(jCur());
   });
 }
 function addJChild(pathStr){
@@ -1594,7 +1571,7 @@ function addJChildSave(){
   }
   doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();save();
   jExpand[JSON.stringify(jAddSegs)]=true;
-  closeModal();renderJsonDocs();toast('已添加');
+  closeModal();renderDocs();toast('已添加');
 }
 function delJNode(pathStr){
   const segs=JSON.parse(pathStr);
@@ -1603,7 +1580,7 @@ function delJNode(pathStr){
   const doc=jCur();let obj;try{obj=JSON.parse(doc.content)}catch(e){return toast('JSON 不合法')}
   delIn(obj,segs);cleanComments(doc,segs);
   doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();save();
-  renderJsonDocs();toast('已删除');
+  renderDocs();toast('已删除');
 }
 function editJComment(pathStr){
   const doc=jCur();
@@ -1619,7 +1596,7 @@ function saveJComment(pathStr){
   doc.comments=doc.comments||{};
   if(v)doc.comments[pathStr]=v;else delete doc.comments[pathStr];
   doc.updatedAt=Date.now();save();
-  closeModal();renderJsonDocs();toast(v?'注释已保存':'注释已删除');
+  closeModal();renderDocs();toast(v?'注释已保存':'注释已删除');
 }
 /* ---------- export / import ---------- */
 function exportData(){
@@ -1629,13 +1606,13 @@ function exportData(){
 function importData(){
   const i=document.createElement('input');i.type='file';i.accept='.json';
   i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();
-    r.onload=()=>{try{const d=JSON.parse(r.result);if(d.skills&&d.mcp&&d.prompts){if(!d.docs)d.docs=seed().docs;if(!d.jsonDocs)d.jsonDocs=seed().jsonDocs;DB=d;save();render();toast('导入成功')}else toast('文件格式不对')}catch(e){toast('导入失败：无效 JSON')}};
+    r.onload=()=>{try{const d=JSON.parse(r.result);if(d.skills&&d.mcp&&d.prompts){if(!d.docs)d.docs=seed().docs;migrateJsonDocs(d);DB=d;save();render();toast('导入成功')}else toast('文件格式不对')}catch(e){toast('导入失败：无效 JSON')}};
     r.readAsText(f)};i.click();
 }
 /* ---------- render dispatch ---------- */
 function render(){
   renderDash();
-  ({skills:renderSkills,mcp:renderMcp,prompts:renderPrompts,commands:renderCmds,docs:renderDocs,json:renderJson,jsondocs:renderJsonDocs,tools:renderTools}[view]||(()=>{}))();
+  ({skills:renderSkills,mcp:renderMcp,prompts:renderPrompts,commands:renderCmds,docs:renderDocs,json:renderJson,tools:renderTools}[view]||(()=>{}))();
 }
 render();
 </script>
