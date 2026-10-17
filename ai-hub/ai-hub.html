@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Hub · 本地工作台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231F1E1D'/%3E%3Cpath d='M12 5v14M6 8.5l12 7M6 15.5l12-7' stroke='%23FAF9F5' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Instrument+Sans:ital,wght@0,400..700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF9F5;
+  --paper-deep:#F2EFE7;
+  --panel:#FFFFFF;
+  --ink:#1F1E1D;
+  --ink-2:#55524B;
+  --ink-3:#8B867C;
+  --line:#E7E2D6;
+  --line-2:#DDD6C6;
+  --accent:#C96442;
+  --accent-deep:#A84E30;
+  --accent-soft:#F7EDE6;
+  --accent-wash:#FBF3EC;
+  --green:#6E8B5E;
+  --green-soft:#EDF2E8;
+  --code-bg:#262524;
+  --code-ink:#E8E4DB;
+  --shadow-sm:0 1px 2px rgba(31,30,29,.05);
+  --shadow-md:0 2px 8px rgba(31,30,29,.06),0 8px 24px rgba(31,30,29,.05);
+  --shadow-lg:0 4px 16px rgba(31,30,29,.08),0 16px 48px rgba(31,30,29,.10);
+  --r-sm:8px;--r-md:12px;--r-lg:16px;
+  --serif:'Lora',Georgia,serif;
+  --sans:'Instrument Sans',-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6;overflow-x:hidden}
+::selection{background:rgba(201,100,66,.22)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
+input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:8px;border:3px solid var(--paper)}
+::-webkit-scrollbar-track{background:transparent}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.35;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .028 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
+.app{display:flex;min-height:100vh}
+.sidebar{width:236px;flex-shrink:0;border-right:1px solid var(--line);background:var(--paper);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:24px 14px 16px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 10px 22px}
+.logo-mark{width:30px;height:30px;border-radius:9px;background:var(--ink);display:grid;place-items:center;flex-shrink:0}
+.logo-mark svg{width:16px;height:16px}
+.logo h1{font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:.01em}
+.logo small{display:block;font-family:var(--sans);font-size:10.5px;color:var(--ink-3);font-weight:500;letter-spacing:.08em;margin-top:-2px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-label{font-size:10.5px;font-weight:600;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;padding:14px 12px 8px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:8px 12px;border-radius:var(--r-sm);color:var(--ink-2);font-weight:500;transition:all .16s ease;text-align:left;width:100%}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.75}
+.nav-item:hover{background:var(--paper-deep);color:var(--ink)}
+.nav-item.active{background:var(--accent-wash);color:var(--accent-deep)}
+.nav-item.active svg{opacity:1}
+.nav-item .count{margin-left:auto;font-size:11px;font-weight:600;color:var(--ink-3);background:var(--paper-deep);border-radius:20px;padding:1px 8px;min-width:24px;text-align:center}
+.nav-item.active .count{background:var(--accent-soft);color:var(--accent-deep)}
+.sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+.side-status{display:flex;align-items:center;gap:8px;padding:10px 12px;font-size:11.5px;color:var(--ink-3)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(110,139,94,.15)}
+.side-actions{display:flex;gap:6px;padding:0 8px}
+.side-actions button{flex:1;font-size:11.5px;font-weight:600;padding:7px 0;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);transition:all .15s}
+.side-actions button:hover{border-color:var(--ink-3);color:var(--ink);background:var(--panel)}
+.topbar{display:flex;align-items:center;gap:14px;padding:20px 36px 0;max-width:1240px;width:100%;margin:0 auto}
+.search{flex:1;max-width:340px;position:relative}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--ink-3)}
+.search input{width:100%;padding:9px 14px 9px 36px;border:1px solid var(--line);border-radius:99px;background:var(--panel);font-size:13.5px;outline:none;transition:all .18s}
+.search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(201,100,66,.12)}
+.search input::placeholder{color:var(--ink-3)}
+.btn{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:13.5px;padding:9px 16px;border-radius:99px;transition:all .16s ease;white-space:nowrap}
+.btn svg{width:15px;height:15px}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-primary:hover{background:#000;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent-deep);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-ghost{border:1px solid var(--line);color:var(--ink-2);background:var(--panel)}
+.btn-ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+.content{padding:26px 36px 64px;max-width:1240px;width:100%;margin:0 auto}
+.view{display:none;animation:fadeUp .4s cubic-bezier(.22,.8,.32,1)}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.stagger>*{animation:fadeUp .5s cubic-bezier(.22,.8,.32,1) backwards}
+.stagger>*:nth-child(1){animation-delay:.02s}.stagger>*:nth-child(2){animation-delay:.06s}
+.stagger>*:nth-child(3){animation-delay:.1s}.stagger>*:nth-child(4){animation-delay:.14s}
+.stagger>*:nth-child(5){animation-delay:.18s}.stagger>*:nth-child(6){animation-delay:.22s}
+.stagger>*:nth-child(7){animation-delay:.26s}.stagger>*:nth-child(8){animation-delay:.3s}
+.page-head{margin-bottom:22px}
+.page-head h2{font-family:var(--serif);font-size:27px;font-weight:600;letter-spacing:-.01em}
+.page-head p{color:var(--ink-3);font-size:13.5px;margin-top:3px}
+.page-head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.hero{position:relative;padding:30px 34px;border-radius:var(--r-lg);background:linear-gradient(135deg,#FFFEFB 0%,var(--accent-wash) 100%);border:1px solid var(--line);overflow:hidden;margin-bottom:26px}
+.hero::before{content:'';position:absolute;right:-60px;top:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(201,100,66,.14),transparent 65%);border-radius:50%}
+.hero .astro{position:absolute;right:34px;top:26px;opacity:.9}
+.hero h2{font-family:var(--serif);font-size:26px;font-weight:600}
+.hero h2 em{font-style:italic;color:var(--accent)}
+.hero p{color:var(--ink-2);margin-top:6px;font-size:13.5px;max-width:520px}
+.hero-date{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;letter-spacing:.08em;color:var(--accent-deep);background:var(--accent-soft);padding:4px 12px;border-radius:99px;margin-bottom:14px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:30px}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:18px 20px 16px;transition:all .2s ease;position:relative;cursor:pointer;text-align:left}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--line-2)}
+.stat-card .sc-top{display:flex;align-items:center;justify-content:space-between}
+.stat-card .sc-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-deep)}
+.stat-card .sc-icon svg{width:16px;height:16px}
+.stat-card .num{font-family:var(--serif);font-size:32px;font-weight:600;line-height:1.1;margin-top:12px}
+.stat-card .lbl{font-size:12px;color:var(--ink-3);font-weight:500;margin-top:2px}
+.stat-card .bar{height:3px;border-radius:3px;background:var(--paper-deep);margin-top:12px;overflow:hidden}
+.stat-card .bar i{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width .8s cubic-bezier(.22,.8,.32,1)}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
+.sec-head h3{font-family:var(--serif);font-size:18px;font-weight:600}
+.sec-head .hint{font-size:12px;color:var(--ink-3)}
+.dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.link-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.link-card{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);transition:all .18s;text-decoration:none;color:var(--ink);position:relative}
+.link-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--line-2)}
+.avatar{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:15px;color:#fff;flex-shrink:0}
+.link-card .lc-body{min-width:0}
+.link-card .lc-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.link-card .lc-url{font-size:10.5px;color:var(--ink-3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.link-card .lc-del{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;display:none;place-items:center;box-shadow:var(--shadow-sm)}
+.link-card .lc-del svg{width:10px;height:10px}
+.editing .link-card .lc-del{display:grid}
+.add-card{border-style:dashed;color:var(--ink-3);justify-content:center;font-weight:600;font-size:13px;background:transparent}
+.add-card:hover{border-color:var(--accent);color:var(--accent);box-shadow:none;transform:none}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.toolbar .spacer{flex:1}
+.chip{font-size:12px;font-weight:600;padding:5px 12px;border-radius:99px;border:1px solid var(--line);color:var(--ink-2);transition:all .15s;background:var(--panel)}
+.chip:hover{border-color:var(--ink-3)}
+.chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.item-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:18px 20px;transition:all .2s ease;position:relative;display:flex;flex-direction:column;gap:10px}
+.item-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--line-2)}
+.ic-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.ic-title{font-family:var(--serif);font-size:16.5px;font-weight:600;line-height:1.35}
+.ic-desc{font-size:13px;color:var(--ink-2);flex:1}
+.ic-path{font-family:var(--mono);font-size:11px;color:var(--ink-3);background:var(--paper-deep);border-radius:6px;padding:4px 9px;align-self:flex-start;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ic-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:4px}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10.5px;font-weight:600;color:var(--accent-deep);background:var(--accent-wash);border:1px solid #F0E0D3;padding:2px 9px;border-radius:99px}
+.ic-actions{display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.item-card:hover .ic-actions{opacity:1}
+.icon-btn{width:29px;height:29px;border-radius:7px;display:grid;place-items:center;color:var(--ink-3);transition:all .14s}
+.icon-btn:hover{background:var(--paper-deep);color:var(--ink)}
+.icon-btn.danger:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.icon-btn svg{width:14.5px;height:14.5px}
+.empty{grid-column:1/-1;text-align:center;padding:56px 20px;color:var(--ink-3)}
+.empty svg{width:36px;height:36px;opacity:.4;margin-bottom:10px}
+.empty p{font-size:13.5px}
+.switch{position:relative;width:36px;height:21px;flex-shrink:0;cursor:pointer}
+.switch input{display:none}
+.switch .track{position:absolute;inset:0;background:var(--line-2);border-radius:99px;transition:background .2s}
+.switch .track::after{content:'';position:absolute;top:2.5px;left:2.5px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:transform .22s cubic-bezier(.34,1.4,.5,1)}
+.switch input:checked+.track{background:var(--green)}
+.switch input:checked+.track::after{transform:translateX(15px)}
+.mcp-layout{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
+.mcp-list{display:flex;flex-direction:column;gap:8px}
+.mcp-item{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);cursor:pointer;transition:all .16s;text-align:left;width:100%}
+.mcp-item:hover{border-color:var(--line-2);box-shadow:var(--shadow-sm)}
+.mcp-item.sel{border-color:var(--accent);background:var(--accent-wash);box-shadow:0 0 0 1px var(--accent)}
+.mcp-item .mi-body{flex:1;min-width:0}
+.mcp-item .mi-name{font-weight:600;font-size:13.5px}
+.mcp-item .mi-cmd{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:99px;text-transform:uppercase}
+.badge.on{background:var(--green-soft);color:var(--green)}
+.badge.off{background:var(--paper-deep);color:var(--ink-3)}
+.mcp-detail{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;position:sticky;top:24px}
+.md-head{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line)}
+.md-head h3{font-family:var(--serif);font-size:17px;font-weight:600}
+.code-block{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:12.5px;line-height:1.75;padding:20px 22px;overflow:auto;max-height:420px;white-space:pre}
+.code-block .k{color:#E0A883}.code-block .s{color:#A9C4A0}.code-block .n{color:#D6BF8B}
+.md-body{padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.field label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+.field input,.field textarea,.field select{width:100%;padding:10px 13px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--paper);outline:none;transition:all .16s;font-size:13.5px}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(201,100,66,.1);background:#fff}
+.field textarea{resize:vertical;min-height:110px;font-family:var(--mono);font-size:12.5px;line-height:1.7}
+.tpl-row{display:flex;gap:8px;flex-wrap:wrap}
+.tpl-chip{font-family:var(--mono);font-size:11px;font-weight:500;padding:5px 11px;border-radius:99px;border:1px solid var(--line);color:var(--ink-2);transition:all .14s;background:var(--paper)}
+.tpl-chip:hover{border-color:var(--accent);color:var(--accent-deep);background:var(--accent-wash)}
+.row-list{display:flex;flex-direction:column;gap:10px}
+.row-item{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 20px;transition:all .18s;cursor:pointer}
+.row-item:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);border-color:var(--line-2)}
+.ri-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ri-title{font-family:var(--serif);font-size:15.5px;font-weight:600}
+.ri-cmd{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent-deep);background:var(--accent-wash);padding:3px 10px;border-radius:7px}
+.ri-preview{font-size:13px;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.6}
+.ri-actions{margin-left:auto;display:flex;align-items:center;gap:2px;opacity:0;transition:opacity .15s}
+.row-item:hover .ri-actions{opacity:1}
+.ri-meta{display:flex;align-items:center;gap:8px}
+.cat{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 9px;border-radius:99px;background:var(--paper-deep);color:var(--ink-2)}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.tool-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;transition:all .2s ease;display:flex;flex-direction:column;gap:12px;position:relative}
+.tool-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--line-2)}
+.tool-card .tc-head{display:flex;align-items:center;gap:11px}
+.tool-card .tc-name{font-weight:600;font-size:14px}
+.tool-card .tc-cat{font-size:10.5px;color:var(--ink-3);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.tool-card .tc-url{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tool-card .tc-foot{display:flex;gap:8px;margin-top:auto}
+.tool-card .tc-foot a{flex:1;text-align:center;font-size:12px;font-weight:600;padding:7px 0;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);text-decoration:none;transition:all .14s}
+.tool-card .tc-foot a:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tool-card .tc-del{position:absolute;top:10px;right:10px;opacity:0;transition:opacity .15s}
+.tool-card:hover .tc-del{opacity:1}
+/* docs */
+.hide{display:none!important}
+.docs-layout{display:grid;grid-template-columns:290px 1fr;gap:18px;align-items:start}
+.docs-tree{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:12px}
+.docs-tools{display:flex;gap:6px;margin-bottom:10px}
+.docs-tools .mini{flex:1;font-size:12px;font-weight:600;padding:7px 0;border:1px solid var(--line);border-radius:var(--r-sm);color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.docs-tools .mini:hover{border-color:var(--accent);color:var(--accent-deep);background:var(--accent-wash)}
+.docs-tools .mini svg{width:13px;height:13px}
+.tree{font-size:13.5px;max-height:64vh;overflow:auto;padding:2px}
+.tree-row{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background .13s;user-select:none}
+.tree-row:hover{background:var(--paper-deep)}
+.tree-row.sel{background:var(--accent-wash);color:var(--accent-deep)}
+.tree-row.drop{box-shadow:inset 0 0 0 2px var(--accent)}
+.tree-row .tw{width:12px;height:12px;flex-shrink:0;color:var(--ink-3);transition:transform .18s;display:grid;place-items:center}
+.tree-row.open .tw{transform:rotate(90deg)}
+.tree-row .f-ico{width:15px;height:15px;flex-shrink:0;opacity:.8}
+.tree-row .t-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tree-row .t-acts{display:none;gap:1px}
+.tree-row:hover .t-acts{display:flex}
+.tree-row .t-acts .icon-btn{width:23px;height:23px}
+.tree-row .t-acts .icon-btn svg{width:12px;height:12px}
+.tree-kids{margin-left:15px;padding-left:8px;border-left:1px solid var(--line)}
+.docs-editor{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);display:flex;flex-direction:column;min-height:540px;overflow:hidden}
+.de-head{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.de-title{font-family:var(--serif);font-size:17px;font-weight:600}
+.de-meta{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.seg{display:flex;background:var(--paper-deep);border-radius:99px;padding:3px;margin-left:auto}
+.seg button{font-size:12px;font-weight:600;padding:5px 14px;border-radius:99px;color:var(--ink-3);transition:all .15s}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow-sm)}
+.de-body{flex:1;display:flex;min-height:0}
+#docEditor,.json-src{flex:1;border:none;outline:none;resize:none;padding:22px 24px;font-family:var(--mono);font-size:13px;line-height:1.8;background:transparent;color:var(--ink);min-width:0}
+#docPreview{flex:1;overflow:auto;padding:22px 26px;min-width:0;background:var(--paper)}
+/* 块级所见即所得编辑 */
+.md .blk{border:1px dashed transparent;border-radius:8px;padding:1px 10px;margin:0 -10px;transition:border-color .12s,background .12s}
+.md.editable .blk{cursor:text}
+.md.editable .blk:hover{border-color:var(--line-2);background:rgba(201,100,66,.05)}
+.blk.editing{border:none!important;background:none!important;padding:2px 0;margin:3px -2px}
+.blk-edit{width:100%;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--ink);background:#fff;border:1px solid var(--accent);border-radius:8px;outline:none;box-shadow:0 0 0 3px rgba(201,100,66,.12);padding:10px 13px;resize:none;overflow:hidden;min-height:44px}
+/* frontmatter 元信息卡 */
+.fm-card{background:var(--paper-deep);border:1px solid var(--line);border-radius:8px;padding:9px 14px;font-size:12px}
+.fm-row{display:flex;gap:12px;padding:2.5px 0}
+.fm-k{font-family:var(--mono);color:var(--accent-deep);font-weight:600;min-width:92px;flex-shrink:0}
+.fm-v{font-family:var(--mono);color:var(--ink-2);word-break:break-all}
+/* markdown 渲染 */
+.md{font-size:14px;line-height:1.85;color:var(--ink)}
+.md>*:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{font-family:var(--serif);font-weight:600;margin:1.2em 0 .5em;line-height:1.35}
+.md h1{font-size:24px;border-bottom:1px solid var(--line);padding-bottom:.3em}
+.md h2{font-size:19px}.md h3{font-size:16.5px}.md h4{font-size:14.5px}
+.md p{margin:.6em 0}
+.md a{color:var(--accent-deep);text-decoration:underline;text-underline-offset:3px}
+.md code{font-family:var(--mono);font-size:.86em;background:var(--paper-deep);padding:.15em .45em;border-radius:5px}
+.md pre{background:var(--code-bg);color:var(--code-ink);border-radius:var(--r-sm);padding:14px 16px;overflow:auto;margin:.8em 0}
+.md pre code{background:none;color:inherit;padding:0;font-size:12.5px;line-height:1.7}
+.md blockquote{border-left:3px solid var(--accent);background:var(--accent-wash);margin:.8em 0;padding:.5em 1em;border-radius:0 var(--r-sm) var(--r-sm) 0;color:var(--ink-2)}
+.md ul,.md ol{padding-left:1.5em;margin:.5em 0}
+.md li{margin:.25em 0}
+.md hr{border:none;border-top:1px solid var(--line);margin:1.4em 0}
+.md table{border-collapse:collapse;margin:.8em 0;width:100%;font-size:13px}
+.md th,.md td{border:1px solid var(--line);padding:6px 12px;text-align:left}
+.md th{background:var(--paper-deep);font-weight:600}
+.md input[type=checkbox]{accent-color:var(--accent);margin-right:.4em}
+/* json 工具 */
+.json-two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.json-two textarea{min-height:300px!important}
+.json-msg{font-size:12.5px;margin:12px 0 0;min-height:18px}
+.json-msg.err{color:#B3402A}
+.json-msg.ok{color:var(--green);font-weight:600}
+.json-panel{animation:fadeUp .4s cubic-bezier(.22,.8,.32,1)}
+.json-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.jtree{flex:1;overflow:auto;padding:18px 20px;font-size:13px;background:var(--paper)}
+.jn-row{display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px}
+.jn-row:hover{background:var(--paper-deep)}
+.jun .jn-row{cursor:pointer}
+.jn-tw{width:12px;height:12px;flex-shrink:0;color:var(--ink-3);display:grid;place-items:center;transition:transform .18s}
+.jn-row.open>.jn-tw{transform:rotate(90deg)}
+.jn-key{color:var(--accent-deep);font-family:var(--mono);font-size:12.5px;font-weight:500}
+.jn-colon{color:var(--ink-3)}
+.jn-val{font-family:var(--mono);font-size:12.5px;word-break:break-all}
+.jn-str{color:#4E7E4E}.jn-num{color:#3E6E96}.jn-bool{color:#8E5E9E}.jn-null{color:var(--ink-3);font-style:italic}
+.jn-sum{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.jn-kids{margin-left:17px;padding-left:10px;border-left:1px solid var(--line)}
+.jn-cmt{font-size:11px;color:#8A6D3B;background:#F6EFDD;border:1px solid #E8DCBB;padding:1px 9px;border-radius:99px;margin-left:6px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.jun .jn-cmt{cursor:pointer}
+.jn-acts{display:none;gap:2px;margin-left:auto;flex-shrink:0}
+.jn-row:hover .jn-acts{display:flex}
+.jn-acts .icon-btn{width:24px;height:24px}
+.jn-acts .icon-btn svg{width:12.5px;height:12.5px}
+.jn-edit{font-family:var(--mono);font-size:12.5px;border:1px solid var(--accent);border-radius:6px;outline:none;padding:3px 8px;background:#fff;box-shadow:0 0 0 3px rgba(201,100,66,.12);min-width:120px;flex:1;max-width:420px}
+.json-err{background:#F9E9E4;border:1px solid #EBCFC5;color:#B3402A;border-radius:var(--r-sm);padding:14px 18px;font-family:var(--mono);font-size:12.5px}
+.diff-row{display:flex;gap:12px;align-items:baseline;padding:8px 14px;border-radius:8px;font-size:12.5px;margin-bottom:6px;flex-wrap:wrap}
+.diff-add{background:var(--green-soft)}.diff-del{background:#F9E9E4}.diff-chg{background:#F6EFDD}
+.diff-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.04em}
+.diff-add .diff-badge{background:#DCE8D4;color:var(--green)}
+.diff-del .diff-badge{background:#F0D8CE;color:#B3402A}
+.diff-chg .diff-badge{background:#EDDFC2;color:#8A6D3B}
+.diff-path{font-family:var(--mono);color:var(--ink);font-weight:500}
+.diff-val{font-family:var(--mono);color:var(--ink-2);word-break:break-all}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(31,30,29,.32);backdrop-filter:blur(5px);display:none;align-items:flex-start;justify-content:center;padding:7vh 20px;z-index:100;animation:fadeIn .2s ease}
+.overlay.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--paper);border-radius:var(--r-lg);width:100%;max-width:540px;box-shadow:var(--shadow-lg);border:1px solid var(--line);animation:pop .32s cubic-bezier(.22,1.2,.36,1);max-height:86vh;display:flex;flex-direction:column}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(12px)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 26px 0}
+.modal-head h3{font-family:var(--serif);font-size:20px;font-weight:600}
+.modal-body{padding:18px 26px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:15px}
+.modal-foot{display:flex;justify-content:flex-end;gap:9px;padding:0 26px 22px}
+.form-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;opacity:0;transition:all .3s cubic-bezier(.22,.8,.32,1);z-index:200;pointer-events:none;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast svg{width:14px;height:14px;color:var(--accent)}
+@media (max-width:1080px){.stat-grid{grid-template-columns:repeat(3,1fr)}.dash-cols{grid-template-columns:1fr}.mcp-layout{grid-template-columns:1fr}.mcp-detail{position:static}.json-two{grid-template-columns:1fr}}
+@media (max-width:820px){
+  .app{flex-direction:column}
+  .docs-layout{grid-template-columns:1fr}
+  .docs-editor{min-height:420px}
+  .de-body{min-height:300px}
+  .sidebar{width:100%;height:auto;position:static;flex-direction:row;align-items:center;padding:12px 16px;overflow-x:auto}
+  .logo{padding:0 14px 0 0}
+  .logo small{display:none}
+  .nav{flex-direction:row;gap:4px}
+  .nav-label,.sidebar-foot,.nav-item .count{display:none}
+  .nav-item{padding:7px 11px;white-space:nowrap}
+  .content,.topbar{padding-left:20px;padding-right:20px}
+  .stat-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7" stroke="#FAF9F5" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </div>
+      <h1>AI Hub<small>LOCAL WORKBENCH</small></h1>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-label">工作台</div>
+      <button class="nav-item active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg>
+        看板<span class="count" id="c-dash"></span>
+      </button>
+      <button class="nav-item" data-view="skills">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.6L20 10l-4.4 3.4 1.2 5.9L12 16.4 7.2 19.3l1.2-5.9L4 10l5.8-1.4z"/></svg>
+        Skills<span class="count" data-count="skills"></span>
+      </button>
+      <button class="nav-item" data-view="mcp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v3a3 3 0 003 3h6"/></svg>
+        MCP 服务<span class="count" data-count="mcp"></span>
+      </button>
+      <button class="nav-item" data-view="prompts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Prompts<span class="count" data-count="prompts"></span>
+      </button>
+      <button class="nav-item" data-view="commands">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        Commands<span class="count" data-count="commands"></span>
+      </button>
+      <button class="nav-item" data-view="docs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        Docs<span class="count" data-count="docs"></span>
+      </button>
+      <div class="nav-label">扩展</div>
+      <button class="nav-item" data-view="json">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/></svg>
+        JSON 工具<span class="count" data-count="jsonDocs"></span>
+      </button>
+      <button class="nav-item" data-view="tools">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a2 2 0 11-2.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        工具箱<span class="count" data-count="tools"></span>
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="side-status"><span class="dot"></span>本地存储 · 数据不出机器</div>
+      <div class="side-actions">
+        <button onclick="exportData()">导出</button>
+        <button onclick="importData()">导入</button>
+      </div>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="search" type="text" placeholder="搜索当前页面…  / 聚焦">
+      </div>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn btn-accent" id="addBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span id="addLabel">新建</span>
+      </button>
+    </div>
+    <div class="content">
+
+      <section class="view active" id="view-dashboard">
+        <div class="hero stagger">
+          <svg class="astro" width="52" height="52" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7" stroke="#C96442" stroke-width="1.6" stroke-linecap="round" opacity=".55"/></svg>
+          <div class="hero-date" id="today">—</div>
+          <h2 id="greet">晚上好</h2>
+          <p>这里是你所有 AI 资产的统一入口 — skills、MCP、prompts 与常用工具，全部保存在本机。</p>
+        </div>
+        <div class="stat-grid stagger" id="statGrid"></div>
+        <div class="dash-cols">
+          <div>
+            <div class="sec-head">
+              <h3>快速连接</h3>
+              <button class="btn btn-ghost btn-sm" id="editLinks">整理</button>
+            </div>
+            <div class="link-grid" id="linkGrid"></div>
+          </div>
+          <div>
+            <div class="sec-head">
+              <h3>常用工具</h3>
+              <button class="btn btn-ghost btn-sm" onclick="switchView('tools')">管理全部</button>
+            </div>
+            <div class="link-grid" id="toolQuick"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-skills">
+        <div class="page-head page-head-row">
+          <div><h2>Skills</h2><p>可复用的 Agent 技能包 — 一个装着 SKILL.md 的文件夹</p></div>
+          <div class="toolbar" style="margin:0"><span class="chip on" data-filter="all">全部</span><span class="chip" data-filter="on">已启用</span><span class="chip" data-filter="off">已停用</span></div>
+        </div>
+        <div class="card-grid" id="skillGrid"></div>
+      </section>
+
+      <section class="view" id="view-mcp">
+        <div class="page-head page-head-row">
+          <div><h2>MCP 服务</h2><p>Model Context Protocol 服务器配置 · 一键复制到 claude_desktop_config.json</p></div>
+        </div>
+        <div class="mcp-layout">
+          <div class="mcp-list" id="mcpList"></div>
+          <div class="mcp-detail" id="mcpDetail"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-prompts">
+        <div class="page-head"><h2>Prompts</h2><p>沉淀你的提示词资产，随取随用</p></div>
+        <div class="row-list" id="promptList"></div>
+      </section>
+
+      <section class="view" id="view-commands">
+        <div class="page-head"><h2>Commands</h2><p>自定义斜杠命令，让重复工作一条指令完成</p></div>
+        <div class="row-list" id="cmdList"></div>
+      </section>
+
+      <section class="view" id="view-docs">
+        <div class="page-head"><h2>Docs</h2><p>多级目录笔记 · Markdown 格式 · 拖拽整理 · 自动保存</p></div>
+        <div class="docs-layout">
+          <div class="docs-tree">
+            <div class="docs-tools">
+              <button class="mini" onclick="newNote(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>笔记</button>
+              <button class="mini" onclick="newFolder(null)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/></svg>文件夹</button>
+            </div>
+            <div class="tree" id="docTree"></div>
+          </div>
+          <div class="docs-editor" id="docEditorPanel"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-json">
+        <div class="page-head page-head-row">
+          <div><h2>JSON 工具</h2><p>格式化 · 压缩 · 转义 · 比对 · 增强文档</p></div>
+          <div class="toolbar" style="margin:0" id="jsonTabs"></div>
+        </div>
+        <div class="json-panel hide" id="jsonFormat">
+          <div class="json-two">
+            <div class="field"><label>输入</label><textarea id="jfIn" placeholder='{ "key": "value" }'></textarea></div>
+            <div class="field"><label>输出</label><textarea id="jfOut" readonly placeholder="结果将显示在这里"></textarea></div>
+          </div>
+          <div class="json-actions">
+            <button class="btn btn-primary btn-sm" onclick="jfmt(2)">格式化</button>
+            <button class="btn btn-ghost btn-sm" onclick="jfmt(0)">压缩</button>
+            <button class="btn btn-ghost btn-sm" onclick="jesc()">转义</button>
+            <button class="btn btn-ghost btn-sm" onclick="junes()">转义还原</button>
+            <button class="btn btn-ghost btn-sm" onclick="copyJfOut()">复制输出</button>
+          </div>
+          <div class="json-msg" id="jfMsg"></div>
+        </div>
+        <div class="json-panel hide" id="jsonDiff">
+          <div class="json-two">
+            <div class="field"><label>JSON A</label><textarea id="jdA" placeholder='{"a":1,"b":[1,2]}'></textarea></div>
+            <div class="field"><label>JSON B</label><textarea id="jdB" placeholder='{"a":2,"c":3}'></textarea></div>
+          </div>
+          <div class="json-actions"><button class="btn btn-accent btn-sm" onclick="jdCompare()">比对</button></div>
+          <div class="json-msg" id="jdMsg"></div>
+          <div id="jdResult" style="margin-top:14px"></div>
+        </div>
+        <div class="json-panel hide" id="jsonDocsPanel">
+          <div class="docs-layout">
+            <div class="docs-tree">
+              <div class="docs-tools">
+                <button class="mini" onclick="newJsonDoc()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新建文档</button>
+              </div>
+              <div class="tree" id="jsonList"></div>
+            </div>
+            <div class="docs-editor" id="jsonEditorPanel"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-tools">
+        <div class="page-head page-head-row">
+          <div><h2>工具箱</h2><p>常用 AI 相关工具的本地集合，统一入口</p></div>
+          <div class="toolbar" style="margin:0" id="toolCats"></div>
+        </div>
+        <div class="tool-grid" id="toolGrid"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg"></span>
+</div>
+<script>
+/* ============================================================
+   AI Hub — 纯本地单页工作台
+   数据持久化: localStorage[aihub.v1]
+============================================================ */
+const KEY='aihub.v1';
+const AV_COLORS=['#C96442','#6E8B5E','#4E6E8E','#8E6E9E','#B08D3E','#5E8B85','#9E5E6E','#7A7A5C'];
+function seed(){
+  return {
+    skills:[
+      {id:uid(),name:'代码审查 Skill',desc:'对当前 diff 做深度审查：正确性、边界条件、安全隐患，输出结构化报告。',path:'~/.claude/skills/code-review',tags:['编码','质量'],on:true},
+      {id:uid(),name:'PDF 处理',desc:'提取文本与表格、合并拆分、填写表单，支持批量处理。',path:'~/.claude/skills/pdf',tags:['文档'],on:true},
+      {id:uid(),name:'本地 RAG 问答',desc:'文档解析 → 切片 → 向量化 → 检索 → 生成，全流程本地闭环。',path:'~/skills/local-rag',tags:['知识库'],on:true},
+      {id:uid(),name:'周报生成',desc:'读取本周 commits 与任务清单，生成结构化周报草稿。',path:'~/.claude/skills/weekly',tags:['效率'],on:false},
+    ],
+    mcp:[
+      {id:uid(),name:'filesystem',desc:'本地文件读写',tpl:'filesystem',on:true,cfg:{command:'npx',args:['-y','@modelcontextprotocol/server-filesystem','/Users/yu/Documents'],env:{}}},
+      {id:uid(),name:'github',desc:'仓库 / PR / Issue 操作',tpl:'github',on:true,cfg:{command:'npx',args:['-y','@modelcontextprotocol/server-github'],env:{GITHUB_TOKEN:'ghp_xxx'}}},
+      {id:uid(),name:'fetch',desc:'网页抓取与转 Markdown',tpl:'fetch',on:false,cfg:{command:'uvx',args:['mcp-server-fetch'],env:{}}},
+      {id:uid(),name:'sqlite',desc:'本地数据库查询',tpl:'sqlite',on:false,cfg:{command:'uvx',args:['mcp-server-sqlite','--db-path','~/data.db'],env:{}}},
+    ],
+    prompts:[
+      {id:uid(),title:'深度代码审查',cat:'编码',content:'请审查以下代码变更，从正确性、性能、安全、可读性四个维度逐条分析。对每个问题给出：严重程度、位置、修复建议与示例代码。最后输出一份 TL;DR。'},
+      {id:uid(),title:'文档改写 · 通俗版',cat:'写作',content:'把下面的技术文档改写为非技术同事也能看懂的版本。要求：多用类比、保留关键结论、删除不必要的术语，控制在原文 60% 的篇幅。'},
+      {id:uid(),title:'系统设计初稿',cat:'架构',content:'针对以下需求给出 2-3 个架构方案。每个方案包含：架构图（文字描述）、技术选型理由、优劣对比、演进路线。最后给出你的推荐及理由。'},
+    ],
+    commands:[
+      {id:uid(),name:'commit',desc:'按约定式提交规范生成 commit',content:'检查暂存区变更，分析 diff，用约定式提交（Conventional Commits）生成一句简洁的 commit message 并提交。'},
+      {id:uid(),name:'review',desc:'审查当前分支的待提交代码',content:'审查当前分支相对 main 的全部变更，输出问题清单（按严重程度排序）与总评。'},
+      {id:uid(),name:'test',desc:'为变更代码补齐单元测试',content:'找出当前变更中缺乏测试覆盖的函数，为其编写单元测试并运行，确保全部通过。'},
+    ],
+    links:[
+      {id:uid(),name:'Claude',url:'https://claude.ai',color:AV_COLORS[0]},
+      {id:uid(),name:'ChatGPT',url:'https://chatgpt.com',color:AV_COLORS[2]},
+      {id:uid(),name:'DeepSeek',url:'https://chat.deepseek.com',color:AV_COLORS[1]},
+      {id:uid(),name:'Ollama',url:'http://localhost:11434',color:AV_COLORS[4]},
+    ],
+    tools:[
+      {id:uid(),name:'Claude',cat:'对话',url:'https://claude.ai'},
+      {id:uid(),name:'ChatGPT',cat:'对话',url:'https://chatgpt.com'},
+      {id:uid(),name:'DeepSeek',cat:'对话',url:'https://chat.deepseek.com'},
+      {id:uid(),name:'Kimi',cat:'对话',url:'https://kimi.moonshot.cn'},
+      {id:uid(),name:'Gemini',cat:'对话',url:'https://gemini.google.com'},
+      {id:uid(),name:'Ollama',cat:'本地模型',url:'http://localhost:11434'},
+      {id:uid(),name:'LM Studio',cat:'本地模型',url:'http://localhost:1234'},
+      {id:uid(),name:'Open WebUI',cat:'本地模型',url:'http://localhost:3000'},
+      {id:uid(),name:'ComfyUI',cat:'创作',url:'http://localhost:8188'},
+      {id:uid(),name:'Hugging Face',cat:'资源',url:'https://huggingface.co'},
+      {id:uid(),name:'OpenRouter',cat:'资源',url:'https://openrouter.ai'},
+      {id:uid(),name:'ModelScope',cat:'资源',url:'https://modelscope.cn'},
+      {id:uid(),name:'n8n',cat:'自动化',url:'http://localhost:5678'},
+      {id:uid(),name:'Dify',cat:'自动化',url:'http://localhost:80'},
+    ],
+    docs:[
+      {id:uid(),name:'欢迎',type:'folder',open:true,children:[
+        {id:uid(),name:'使用指南',type:'note',updatedAt:Date.now(),content:'# 欢迎使用 Docs\n\n这里是 AI Hub 的内置笔记，支持 **多级目录** 与 Markdown 书写。\n\n## 基本操作\n\n- 左侧目录树支持 **拖拽** 整理\n- 悬停文件夹行可新建子笔记 / 子文件夹\n- 编辑自动保存，右上角可切换 源码 / 预览\n\n## Markdown 支持\n\n1. 行内语法：**加粗**、*斜体*、~~删除线~~、`行内代码`\n2. 任务清单：\n   - [x] 多级目录\n   - [x] Markdown 渲染\n   - [ ] 你的第一条笔记\n3. 代码块、表格、引用\n\n> 提示：顶部搜索框可以直接搜笔记名称与内容。\n\n```js\nconsole.log("Hello AI Hub");\n```\n\n| 语法 | 说明 |\n| --- | --- |\n| # | 标题 |\n| - / 1. | 列表 |\n| > | 引用 |\n'},
+      ]},
+      {id:uid(),name:'AI 笔记',type:'folder',open:true,children:[
+        {id:uid(),name:'MCP',type:'folder',open:false,children:[
+          {id:uid(),name:'MCP 学习笔记',type:'note',updatedAt:Date.now(),content:'# MCP 学习笔记\n\nMCP（Model Context Protocol）是连接 LLM 与外部工具的开放协议。\n\n## 三大原语\n\n- **Tools** — 让模型调用外部能力\n- **Resources** — 向模型暴露上下文数据\n- **Prompts** — 可复用的提示词模版\n\n> 配置好后在「MCP 服务」页一键复制 JSON 即可使用。\n'},
+        ]},
+        {id:uid(),name:'Prompt 技巧',type:'note',updatedAt:Date.now(),content:'# Prompt 技巧\n\n- 明确角色与目标\n- 给出示例（few-shot）\n- 规定输出格式\n- 拆解复杂任务\n'},
+      ]},
+    ],
+    jsonDocs:[
+      {id:uid(),name:'示例配置',updatedAt:Date.now(),content:JSON.stringify({name:'ai-hub',version:'1.0.0',features:{skills:true,mcp:false},tags:['local','ai']},null,2),comments:{'["features"]':'核心功能开关'}},
+    ],
+  };
+}
+const TPL={
+  filesystem:{name:'Filesystem',cfg:{command:'npx',args:['-y','@modelcontextprotocol/server-filesystem','/path/to/dir'],env:{}}},
+  github:{name:'GitHub',cfg:{command:'npx',args:['-y','@modelcontextprotocol/server-github'],env:{GITHUB_TOKEN:'ghp_xxx'}}},
+  fetch:{name:'Fetch',cfg:{command:'uvx',args:['mcp-server-fetch'],env:{}}},
+  sqlite:{name:'SQLite',cfg:{command:'uvx',args:['mcp-server-sqlite','--db-path','./data.db'],env:{}}},
+  playwright:{name:'Playwright',cfg:{command:'npx',args:['-y','@playwright/mcp@latest'],env:{}}},
+  memory:{name:'Memory',cfg:{command:'npx',args:['-y','@modelcontextprotocol/server-memory'],env:{}}},
+};
+let DB=load();
+let view='dashboard', query='', filter='all', selMcp=null, editingLinks=false;
+function load(){let d=null;try{d=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  if(d&&d.skills){if(!d.docs)d.docs=seed().docs;if(!d.jsonDocs)d.jsonDocs=seed().jsonDocs;return d}
+  const s=seed();localStorage.setItem(KEY,JSON.stringify(s));return s}
+function save(){localStorage.setItem(KEY,JSON.stringify(DB))}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+let toastT;
+function toast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1800)}
+function copy(text,msg){navigator.clipboard.writeText(text).then(()=>toast(msg||'已复制到剪贴板'))}
+document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('.nav-item');if(b)switchView(b.dataset.view)});
+function switchView(v){view=v;query='';document.getElementById('search').value='';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  const labels={dashboard:null,skills:'新建 Skill',mcp:'添加服务',prompts:'新建 Prompt',commands:'新建 Command',docs:'新建笔记',json:null,tools:'添加工具'};
+  document.getElementById('addBtn').style.display=labels[v]?'inline-flex':'none';
+  document.getElementById('addLabel').textContent=labels[v]||'';
+  render();}
+document.getElementById('search').addEventListener('input',e=>{query=e.target.value.toLowerCase();render()});
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();document.getElementById('search').focus()}
+  if(e.key==='Escape')closeModal();
+});
+const STAT_DEF=[
+  {k:'skills',label:'Skills',icon:'<path d="M12 3l2.2 5.6L20 10l-4.4 3.4 1.2 5.9L12 16.4 7.2 19.3l1.2-5.9L4 10l5.8-1.4z"/>'},
+  {k:'mcp',label:'MCP 服务',icon:'<circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v3a3 3 0 003 3h6"/>'},
+  {k:'prompts',label:'Prompts',icon:'<path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>'},
+  {k:'commands',label:'Commands',icon:'<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>'},
+  {k:'docs',label:'Docs 笔记',icon:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>'},
+  {k:'jsonDocs',label:'JSON 文档',icon:'<path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/>'},
+];
+function itemTotal(k){return k==='docs'?docsTotal():DB[k].length}
+function renderDash(){
+  const h=new Date().getHours();
+  document.getElementById('greet').innerHTML=(h<6?'夜深了，':h<12?'早上好，':h<18?'下午好，':'晚上好，')+'<em>欢迎回来</em>';
+  document.getElementById('today').textContent=new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'});
+  const max=Math.max(...STAT_DEF.map(s=>itemTotal(s.k)),1);
+  document.getElementById('statGrid').innerHTML=STAT_DEF.map(s=>`
+    <button class="stat-card" onclick="switchView('${s.k}')">
+      <div class="sc-top"><div class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${s.icon}</svg></div></div>
+      <div class="num">${itemTotal(s.k)}</div><div class="lbl">${s.label}</div>
+      <div class="bar"><i style="width:${itemTotal(s.k)/max*100}%"></i></div>
+    </button>`).join('');
+  document.getElementById('linkGrid').innerHTML=DB.links.map(l=>`
+    <a class="link-card" href="${esc(l.url)}" target="_blank" rel="noopener">
+      <span class="avatar" style="background:${l.color}">${esc(l.name[0])}</span>
+      <span class="lc-body"><span class="lc-name">${esc(l.name)}</span><br><span class="lc-url">${esc(l.url.replace(/^https?:\/\//,''))}</span></span>
+      ${editingLinks?`<button class="lc-del" onclick="event.preventDefault();event.stopPropagation();delItem('links','${l.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`:''}
+    </a>`).join('')+
+    `<button class="link-card add-card" onclick="editLink()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>&nbsp;添加</button>`;
+  document.getElementById('toolQuick').innerHTML=DB.tools.slice(0,5).map(t=>`
+    <a class="link-card" href="${esc(t.url)}" target="_blank" rel="noopener">
+      <span class="avatar" style="background:${AV_COLORS[t.name.length%AV_COLORS.length]}">${esc(t.name[0])}</span>
+      <span class="lc-body"><span class="lc-name">${esc(t.name)}</span><br><span class="lc-url">${esc(t.cat)}</span></span>
+    </a>`).join('')+
+    `<a class="link-card add-card" href="javascript:void 0" onclick="switchView('tools')">${DB.tools.length-5>0?`+${DB.tools.length-5}`:'全部'}工具 →</a>`;
+  document.querySelectorAll('[data-count]').forEach(c=>c.textContent=c.dataset.count==='docs'?docsTotal():DB[c.dataset.count].length);
+  document.getElementById('c-dash').textContent='';
+}
+document.getElementById('editLinks').addEventListener('click',e=>{editingLinks=!editingLinks;e.target.textContent=editingLinks?'完成':'整理';renderDash()});
+function renderSkills(){
+  let list=DB.skills.filter(s=>!query||(s.name+s.desc+s.tags.join()).toLowerCase().includes(query));
+  if(filter==='on')list=list.filter(s=>s.on); if(filter==='off')list=list.filter(s=>!s.on);
+  document.getElementById('skillGrid').innerHTML=list.length?list.map(s=>`
+    <div class="item-card">
+      <div class="ic-head">
+        <div class="ic-title">${esc(s.name)}</div>
+        <label class="switch" title="${s.on?'已启用':'已停用'}"><input type="checkbox" ${s.on?'checked':''} onchange="toggleItem('skills','${s.id}')"><span class="track"></span></label>
+      </div>
+      <div class="ic-desc">${esc(s.desc)}</div>
+      <div class="ic-path">${esc(s.path)}</div>
+      <div class="ic-foot">
+        <div class="tags">${s.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+        <div class="ic-actions">
+          <button class="icon-btn" title="编辑" onclick="editSkill('${s.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>
+          <button class="icon-btn danger" title="删除" onclick="delItem('skills','${s.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg></button>
+        </div>
+      </div>
+    </div>`).join(''):emptyBox('还没有 Skill，点击右上角「新建 Skill」');
+}
+function emptyBox(t){return `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M12 3l2.2 5.6L20 10l-4.4 3.4 1.2 5.9L12 16.4 7.2 19.3l1.2-5.9L4 10l5.8-1.4z"/></svg><p>${t}</p></div>`}
+function renderMcp(){
+  const list=DB.mcp.filter(s=>!query||s.name.toLowerCase().includes(query));
+  if(!selMcp||!DB.mcp.find(m=>m.id===selMcp))selMcp=list[0]?.id||null;
+  document.getElementById('mcpList').innerHTML=list.map(m=>`
+    <button class="mcp-item ${m.id===selMcp?'sel':''}" onclick="selMcp='${m.id}';renderMcp()">
+      <div class="mi-body"><div class="mi-name">${esc(m.name)}</div><div class="mi-cmd">${esc(m.cfg.command)} ${esc((m.cfg.args||[]).join(' ').slice(0,42))}</div></div>
+      <span class="badge ${m.on?'on':'off'}">${m.on?'ON':'OFF'}</span>
+    </button>`).join('')+`
+    <button class="mcp-item add-card" style="justify-content:center;border-style:dashed;background:transparent" onclick="editMcp()">＋ 添加服务</button>`;
+  const m=DB.mcp.find(x=>x.id===selMcp);
+  document.getElementById('mcpDetail').innerHTML=m?`
+    <div class="md-head">
+      <h3>${esc(m.name)}</h3>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="switch"><input type="checkbox" ${m.on?'checked':''} onchange="toggleItem('mcp','${m.id}')"><span class="track"></span></label>
+        <button class="icon-btn" title="编辑" onclick="editMcp('${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>
+        <button class="icon-btn danger" title="删除" onclick="delItem('mcp','${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg></button>
+      </div>
+    </div>
+    <div class="code-block" id="mcpJson"></div>
+    <div class="md-body">
+      <div class="field"><label>配置模版</label>
+        <div class="tpl-row">${Object.entries(TPL).map(([k,t])=>`<button class="tpl-chip" onclick="applyTpl('${k}')">${t.name}</button>`).join('')}</div>
+      </div>
+      <button class="btn btn-accent" style="align-self:flex-start" onclick="copyMcp()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        复制 JSON 片段
+      </button>
+    </div>`:`<div class="empty" style="padding:80px 20px"><p>左侧选择或添加一个 MCP 服务</p></div>`;
+  if(m){
+    const frag={mcpServers:{[m.name]:m.cfg}};
+    const html=JSON.stringify(frag,null,2).replace(/"([^"]+)":/g,(s,k)=>`<span class="k">"${esc(k)}"</span>:`)
+      .replace(/: "(.*?)"/g,': <span class="s">"$1"</span>');
+    document.getElementById('mcpJson').innerHTML=html;
+  }
+}
+function copyMcp(){const m=DB.mcp.find(x=>x.id===selMcp);if(m)copy(JSON.stringify({mcpServers:{[m.name]:m.cfg}},null,2),'JSON 已复制，粘贴到配置文件即可')}
+function applyTpl(k){const m=DB.mcp.find(x=>x.id===selMcp);if(!m)return;m.cfg=JSON.parse(JSON.stringify(TPL[k].cfg));if(m.name==='')m.name=k;save();renderMcp();toast(`已套用 ${TPL[k].name} 模版`)}
+function renderPrompts(){
+  const list=DB.prompts.filter(p=>!query||(p.title+p.content+p.cat).toLowerCase().includes(query));
+  document.getElementById('promptList').innerHTML=list.length?list.map(p=>`
+    <div class="row-item" onclick="editPrompt('${p.id}')">
+      <div class="ri-head">
+        <span class="ri-title">${esc(p.title)}</span><span class="cat">${esc(p.cat)}</span>
+        <div class="ri-actions">
+          <button class="icon-btn" title="复制内容" onclick="event.stopPropagation();copyItem('prompts','${p.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+          <button class="icon-btn danger" title="删除" onclick="event.stopPropagation();delItem('prompts','${p.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg></button>
+        </div>
+      </div>
+      <div class="ri-preview">${esc(p.content)}</div>
+    </div>`).join(''):emptyBox('还没有 Prompt，点击右上角「新建 Prompt」');
+}
+function renderCmds(){
+  const list=DB.commands.filter(c=>!query||(c.name+c.desc+c.content).toLowerCase().includes(query));
+  document.getElementById('cmdList').innerHTML=list.length?list.map(c=>`
+    <div class="row-item" onclick="editCommand('${c.id}')">
+      <div class="ri-head">
+        <span class="ri-cmd">/${esc(c.name)}</span><span style="font-size:13px;color:var(--ink-2)">${esc(c.desc)}</span>
+        <div class="ri-actions">
+          <button class="icon-btn" title="复制内容" onclick="event.stopPropagation();copyItem('commands','${c.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+          <button class="icon-btn danger" title="删除" onclick="event.stopPropagation();delItem('commands','${c.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg></button>
+        </div>
+      </div>
+      <div class="ri-preview">${esc(c.content)}</div>
+    </div>`).join(''):emptyBox('还没有 Command，点击右上角「新建 Command」');
+}
+let toolCat='全部';
+function renderTools(){
+  const cats=['全部',...new Set(DB.tools.map(t=>t.cat))];
+  document.getElementById('toolCats').innerHTML=cats.map(c=>`<span class="chip ${c===toolCat?'on':''}" data-cat="${esc(c)}">${esc(c)}</span>`).join('');
+  document.querySelectorAll('[data-cat]').forEach(c=>c.onclick=()=>{toolCat=c.dataset.cat;renderTools()});
+  const list=DB.tools.filter(t=>(toolCat==='全部'||t.cat===toolCat)&&(!query||(t.name+t.cat+t.url).toLowerCase().includes(query)));
+  document.getElementById('toolGrid').innerHTML=list.length?list.map(t=>`
+    <div class="tool-card">
+      <button class="icon-btn danger tc-del" onclick="delItem('tools','${t.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      <div class="tc-head">
+        <span class="avatar" style="background:${AV_COLORS[t.name.length%AV_COLORS.length]}">${esc(t.name[0])}</span>
+        <div><div class="tc-name">${esc(t.name)}</div><div class="tc-cat">${esc(t.cat)}</div></div>
+      </div>
+      <div class="tc-url">${esc(t.url)}</div>
+      <div class="tc-foot"><a href="${esc(t.url)}" target="_blank" rel="noopener">打开</a></div>
+    </div>`).join(''):emptyBox('没有匹配的工具');
+}
+function toggleItem(coll,id){const it=DB[coll].find(x=>x.id===id);it.on=!it.on;save();render();toast(it.on?'已启用':'已停用')}
+function delItem(coll,id){if(!confirm('确定删除？'))return;DB[coll]=DB[coll].filter(x=>x.id!==id);if(coll==='mcp'&&selMcp===id)selMcp=null;save();render();toast('已删除')}
+function copyItem(coll,id){const it=DB[coll].find(x=>x.id===id);copy(it.content,'内容已复制')}
+function openModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('overlay').classList.add('show');
+  setTimeout(()=>document.getElementById('modal').querySelector('input,textarea')?.focus(),60)}
+function closeModal(){document.getElementById('overlay').classList.remove('show')}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeModal()});
+function editSkill(id){
+  const s=id?DB.skills.find(x=>x.id===id):{name:'',desc:'',path:'',tags:'',on:true};
+  openModal(`
+    <div class="modal-head"><h3>${id?'编辑 Skill':'新建 Skill'}</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="field"><label>名称</label><input id="f-name" value="${esc(s.name)}" placeholder="例如：代码审查"></div>
+      <div class="field"><label>描述</label><textarea id="f-desc" style="min-height:76px;font-family:var(--sans);font-size:13.5px" placeholder="这个 Skill 做什么？">${esc(s.desc)}</textarea></div>
+      <div class="field"><label>路径</label><input id="f-path" value="${esc(s.path)}" placeholder="~/.claude/skills/my-skill" style="font-family:var(--mono);font-size:12.5px"></div>
+      <div class="field"><label>标签（逗号分隔）</label><input id="f-tags" value="${esc((s.tags||[]).join(', '))}" placeholder="编码, 质量"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="saveSkill('${id||''}')">保存</button></div>`);
+}
+function saveSkill(id){
+  const name=document.getElementById('f-name').value.trim();if(!name)return toast('请填写名称');
+  const data={name,desc:document.getElementById('f-desc').value.trim(),path:document.getElementById('f-path').value.trim(),
+    tags:document.getElementById('f-tags').value.split(/[,，]/).map(t=>t.trim()).filter(Boolean)};
+  if(id)Object.assign(DB.skills.find(x=>x.id===id),data);else DB.skills.unshift({id:uid(),on:true,...data});
+  save();closeModal();render();toast('已保存');
+}
+function editMcp(id){
+  const m=id?DB.mcp.find(x=>x.id===id):{name:'',desc:'',cfg:{command:'',args:[],env:{}}};
+  openModal(`
+    <div class="modal-head"><h3>${id?'编辑 MCP 服务':'添加 MCP 服务'}</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-2">
+        <div class="field"><label>名称</label><input id="f-name" value="${esc(m.name)}" placeholder="filesystem"></div>
+        <div class="field"><label>说明</label><input id="f-desc" value="${esc(m.desc||'')}" placeholder="可选"></div>
+      </div>
+      <div class="field"><label>Command</label><input id="f-cmd" value="${esc(m.cfg.command||'')}" placeholder="npx" style="font-family:var(--mono);font-size:12.5px"></div>
+      <div class="field"><label>Args（每行一个）</label><textarea id="f-args" style="min-height:70px">${esc((m.cfg.args||[]).join('\n'))}</textarea></div>
+      <div class="field"><label>Env（KEY=value，每行一个）</label><textarea id="f-env" style="min-height:70px">${esc(Object.entries(m.cfg.env||{}).map(([k,v])=>`${k}=${v}`).join('\n'))}</textarea></div>
+      <div class="field"><label>快速套用模版</label><div class="tpl-row">${Object.entries(TPL).map(([k,t])=>`<button type="button" class="tpl-chip" onclick="fillTpl('${k}')">${t.name}</button>`).join('')}</div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="saveMcp('${id||''}')">保存</button></div>`);
+}
+function fillTpl(k){const t=TPL[k].cfg;document.getElementById('f-cmd').value=t.command;document.getElementById('f-args').value=t.args.join('\n');document.getElementById('f-env').value=Object.entries(t.env||{}).map(([a,b])=>`${a}=${b}`).join('\n')}
+function saveMcp(id){
+  const name=document.getElementById('f-name').value.trim();if(!name)return toast('请填写名称');
+  const cfg={command:document.getElementById('f-cmd').value.trim(),
+    args:document.getElementById('f-args').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    env:{}};
+  document.getElementById('f-env').value.split('\n').map(s=>s.trim()).filter(Boolean).forEach(l=>{const i=l.indexOf('=');if(i>0)cfg.env[l.slice(0,i)]=l.slice(i+1)});
+  if(id){const m=DB.mcp.find(x=>x.id===id);Object.assign(m,{name,cfg,desc:document.getElementById('f-desc').value.trim()});selMcp=m.id}
+  else{const m={id:uid(),name,desc:document.getElementById('f-desc').value.trim(),cfg,on:true};DB.mcp.unshift(m);selMcp=m.id}
+  save();closeModal();render();toast('已保存');
+}
+function editPrompt(id){
+  const p=id?DB.prompts.find(x=>x.id===id):{title:'',cat:'',content:''};
+  openModal(`
+    <div class="modal-head"><h3>${id?'编辑 Prompt':'新建 Prompt'}</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-2">
+        <div class="field"><label>标题</label><input id="f-title" value="${esc(p.title)}" placeholder="深度代码审查"></div>
+        <div class="field"><label>分类</label><input id="f-cat" value="${esc(p.cat)}" placeholder="编码 / 写作 / 架构"></div>
+      </div>
+      <div class="field"><label>内容</label><textarea id="f-content" style="min-height:180px">${esc(p.content)}</textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="savePrompt('${id||''}')">保存</button></div>`);
+}
+function savePrompt(id){
+  const title=document.getElementById('f-title').value.trim();if(!title)return toast('请填写标题');
+  const data={title,cat:document.getElementById('f-cat').value.trim()||'未分类',content:document.getElementById('f-content').value};
+  if(id)Object.assign(DB.prompts.find(x=>x.id===id),data);else DB.prompts.unshift({id:uid(),...data});
+  save();closeModal();render();toast('已保存');
+}
+function editCommand(id){
+  const c=id?DB.commands.find(x=>x.id===id):{name:'',desc:'',content:''};
+  openModal(`
+    <div class="modal-head"><h3>${id?'编辑 Command':'新建 Command'}</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-2">
+        <div class="field"><label>命令名（不含 /）</label><input id="f-name" value="${esc(c.name)}" placeholder="commit"></div>
+        <div class="field"><label>一句话说明</label><input id="f-desc" value="${esc(c.desc)}" placeholder="做什么用"></div>
+      </div>
+      <div class="field"><label>指令内容</label><textarea id="f-content" style="min-height:160px">${esc(c.content)}</textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="saveCommand('${id||''}')">保存</button></div>`);
+}
+function saveCommand(id){
+  const name=document.getElementById('f-name').value.trim().replace(/^\//,'');if(!name)return toast('请填写命令名');
+  const data={name,desc:document.getElementById('f-desc').value.trim(),content:document.getElementById('f-content').value};
+  if(id)Object.assign(DB.commands.find(x=>x.id===id),data);else DB.commands.unshift({id:uid(),...data});
+  save();closeModal();render();toast('已保存');
+}
+function editLink(id){
+  const l=id?DB.links.find(x=>x.id===id):{name:'',url:''};
+  openModal(`
+    <div class="modal-head"><h3>${id?'编辑连接':'添加快速连接'}</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-2">
+        <div class="field"><label>名称</label><input id="f-name" value="${esc(l.name)}" placeholder="Claude"></div>
+        <div class="field"><label>URL</label><input id="f-url" value="${esc(l.url)}" placeholder="https://…"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="saveLink('${id||''}')">保存</button></div>`);
+}
+function saveLink(id){
+  const name=document.getElementById('f-name').value.trim(),url=document.getElementById('f-url').value.trim();
+  if(!name||!url)return toast('名称和 URL 都要填');
+  if(id)Object.assign(DB.links.find(x=>x.id===id),{name,url});
+  else DB.links.push({id:uid(),name,url,color:AV_COLORS[DB.links.length%AV_COLORS.length]});
+  save();closeModal();render();toast('已保存');
+}
+function editTool(id){
+  const t=id?DB.tools.find(x=>x.id===id):{name:'',cat:'',url:''};
+  openModal(`
+    <div class="modal-head"><h3>${id?'编辑工具':'添加工具'}</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-2">
+        <div class="field"><label>名称</label><input id="f-name" value="${esc(t.name)}" placeholder="Ollama"></div>
+        <div class="field"><label>分类</label><input id="f-cat" value="${esc(t.cat)}" placeholder="本地模型"></div>
+      </div>
+      <div class="field"><label>URL</label><input id="f-url" value="${esc(t.url)}" placeholder="http://localhost:11434"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="saveTool('${id||''}')">保存</button></div>`);
+}
+function saveTool(id){
+  const name=document.getElementById('f-name').value.trim(),url=document.getElementById('f-url').value.trim(),cat=document.getElementById('f-cat').value.trim()||'未分类';
+  if(!name||!url)return toast('名称和 URL 都要填');
+  if(id)Object.assign(DB.tools.find(x=>x.id===id),{name,url,cat});else DB.tools.unshift({id:uid(),name,url,cat});
+  save();closeModal();render();toast('已保存');
+}
+document.getElementById('addBtn').addEventListener('click',()=>{
+  ({skills:()=>editSkill(),mcp:()=>editMcp(),prompts:()=>editPrompt(),commands:()=>editCommand(),docs:()=>newNote(null),tools:()=>editTool()}[view]||(()=>{}))();
+});
+/* ---------- docs: markdown 渲染 ---------- */
+function mdRender(src){
+  const codes=[];
+  let s=esc(src).replace(/```(\w*)\n?([\s\S]*?)```/g,(m,lang,code)=>{codes.push('<pre><code>'+code.replace(/\n$/,'')+'</code></pre>');return '\u0000'+(codes.length-1)+'\u0000'});
+  const inline=t=>t
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*\*([^*]+)\*\*\*/g,'<strong><em>$1</em></strong>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*([^*\n]+)\*/g,'<em>$1</em>')
+    .replace(/~~([^~]+)~~/g,'<del>$1</del>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const blockStart=/^(#{1,6})\s|^&gt;|^(-{3,}|\*{3,})\s*$|^\s*([-*]|\d+\.)\s+|^\u0000\d+\u0000$/;
+  const lines=s.split('\n');const out=[];let i=0,m;
+  while(i<lines.length){
+    const l=lines[i];
+    if(/^\s*$/.test(l)){i++;continue}
+    if(m=l.match(/^\u0000(\d+)\u0000$/)){out.push(codes[+m[1]]);i++;continue}
+    if(/^(-{3,}|\*{3,})\s*$/.test(l.trim())){out.push('<hr>');i++;continue}
+    if(m=l.match(/^(#{1,6})\s+(.*)/)){const h=m[1].length;out.push('<h'+h+'>'+inline(m[2])+'</h'+h+'>');i++;continue}
+    if(/^&gt;\s?/.test(l)){const buf=[];while(i<lines.length&&/^&gt;\s?/.test(lines[i])){buf.push(lines[i].replace(/^&gt;\s?/,''));i++}out.push('<blockquote><p>'+buf.map(inline).join('<br>')+'</p></blockquote>');continue}
+    if(l.includes('|')&&lines[i+1]&&/^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(lines[i+1])&&/[\s:|-]/.test(lines[i+1].replace(/\|/g,''))){
+      const parse=r=>r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|').map(c=>c.trim());
+      const head=parse(l);i+=2;const rows=[];
+      while(i<lines.length&&lines[i].includes('|')&&!/^\s*$/.test(lines[i])){rows.push(parse(lines[i]));i++}
+      out.push('<table><thead><tr>'+head.map(c=>'<th>'+inline(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+inline(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>');
+      continue;
+    }
+    if(/^\s*([-*]|\d+\.)\s+/.test(l)){
+      const items=[];
+      while(i<lines.length&&/^\s*([-*]|\d+\.)\s+/.test(lines[i])){
+        const mm=lines[i].match(/^\s*([-*]|\d+\.)\s+(.*)/);
+        let task=null,text=mm[2];
+        if(/^\[( |x|X)\]\s*/.test(text)){task=text[1]!==' ';text=text.replace(/^\[( |x|X)\]\s*/,'')}
+        items.push({indent:lines[i].match(/^\s*/)[0].length,task,text,ordered:/\d/.test(mm[1])});
+        i++;
+      }
+      const build=arr=>{
+        if(!arr.length)return'';
+        const lvl=arr[0].indent,ordered=arr[0].ordered;
+        let html='<'+(ordered?'ol':'ul')+'>';
+        let k=0;
+        while(k<arr.length){
+          const it=arr[k];const kids=[];let j=k+1;
+          while(j<arr.length&&arr[j].indent>lvl){kids.push(arr[j]);j++}
+          const inner=it.task!==null?'<span class="task"><input type="checkbox" disabled '+(it.task?'checked':'')+'>'+inline(it.text)+'</span>':inline(it.text);
+          html+='<li>'+inner+(kids.length?build(kids):'')+'</li>';
+          k=j;
+        }
+        return html+'</'+(ordered?'ol':'ul')+'>';
+      };
+      out.push(build(items));continue;
+    }
+    const buf=[l];i++;
+    while(i<lines.length&&!/^\s*$/.test(lines[i])&&!blockStart.test(lines[i])&&!lines[i].includes('|')){buf.push(lines[i]);i++}
+    out.push('<p>'+buf.map(inline).join('<br>')+'</p>');
+  }
+  return out.join('\n');
+}
+/* ---------- docs: 目录树 ---------- */
+let selDoc=null, docMode='view', dragId=null, docUnlocked=false, editingIdx=null, pendingIdx=null, curBlocks=null;
+function findNode(list,id,parent=null,listRef=null){for(const n of list){if(n.id===id)return{n,parent,list:listRef||list};if(n.children){const r=findNode(n.children,id,n,n.children);if(r)return r}}return null}
+function countNotes(n){return n.type==='note'?1:(n.children||[]).reduce((s,c)=>s+countNotes(c),0)}
+function docsTotal(){return DB.docs.reduce((s,n)=>s+countNotes(n),0)}
+function isAncestor(node,id){if(node.id===id)return true;if(!node.children)return false;return node.children.some(c=>isAncestor(c,id))}
+function fmtTime(ts){const d=new Date(ts||Date.now());return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+const ICO_DOC='<svg class="f-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+const ICO_FOLDER='<svg class="f-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/></svg>';
+const ICO_PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+const ICO_EDIT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>';
+const ICO_TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>';
+const ICO_LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+function renderDocs(){
+  if(!selDoc){selDoc=(function f(l){for(const n of l){if(n.type==='note')return n.id;const r=f(n.children||[]);if(r)return r}return null})(DB.docs)}
+  const tree=document.getElementById('docTree');
+  if(query){
+    const hits=[];
+    (function walk(l){l.forEach(n=>{if(n.type==='note'&&(n.name+' '+(n.content||'')).toLowerCase().includes(query))hits.push(n);if(n.children)walk(n.children)})})(DB.docs);
+    tree.innerHTML=hits.length?hits.map(n=>noteRow(n)).join(''):'<div class="empty" style="padding:26px 8px"><p>无匹配笔记</p></div>';
+  }else{
+    tree.innerHTML=DB.docs.length?DB.docs.map(n=>treeHtml(n)).join(''):'<div class="empty" style="padding:26px 8px"><p>空空如也，新建一条笔记吧</p></div>';
+  }
+  tree.querySelectorAll('.tree-row').forEach(row=>{
+    row.addEventListener('dragstart',e=>{dragId=row.dataset.id;e.dataTransfer.effectAllowed='move'});
+    row.addEventListener('dragend',()=>{dragId=null;renderDocs()});
+    row.addEventListener('dragover',e=>{if(!dragId||dragId===row.dataset.id)return;e.preventDefault();row.classList.add('drop')});
+    row.addEventListener('dragleave',()=>row.classList.remove('drop'));
+    row.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();row.classList.remove('drop');const src=dragId;dragId=null;moveNode(src,row.dataset.id)});
+  });
+  renderDocEditor();
+  document.querySelector('[data-count="docs"]').textContent=docsTotal();
+}
+function noteRow(n){
+  return `<div class="tree-row ${selDoc===n.id?'sel':''}" draggable="true" data-id="${n.id}" onclick="selectNote('${n.id}')">
+    <span class="tw"></span>${ICO_DOC}
+    <span class="t-name">${esc(n.name)}</span>
+    <span class="t-acts">
+      <button class="icon-btn" title="重命名" onclick="event.stopPropagation();renameNode('${n.id}')">${ICO_EDIT}</button>
+      <button class="icon-btn danger" title="删除" onclick="event.stopPropagation();delNode('${n.id}')">${ICO_TRASH}</button>
+    </span>
+  </div>`;
+}
+function selectNote(id){if(selDoc===id)return;selDoc=id;renderDocs()}
+function treeHtml(n){
+  if(n.type==='folder'){
+    const open=n.open!==false;
+    return `<div class="tree-row ${open?'open':''}" draggable="true" data-id="${n.id}" onclick="toggleFolder('${n.id}')">
+      <span class="tw"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      ${ICO_FOLDER}
+      <span class="t-name">${esc(n.name)}</span>
+      <span class="t-acts">
+        <button class="icon-btn" title="新建笔记" onclick="event.stopPropagation();newNote('${n.id}')">${ICO_PLUS}</button>
+        <button class="icon-btn" title="新建子文件夹" onclick="event.stopPropagation();newFolder('${n.id}')">${ICO_FOLDER}</button>
+        <button class="icon-btn" title="重命名" onclick="event.stopPropagation();renameNode('${n.id}')">${ICO_EDIT}</button>
+        <button class="icon-btn danger" title="删除" onclick="event.stopPropagation();delNode('${n.id}')">${ICO_TRASH}</button>
+      </span>
+    </div>`+(open?`<div class="tree-kids">${(n.children||[]).map(c=>treeHtml(c)).join('')}</div>`:'');
+  }
+  return noteRow(n);
+}
+function toggleFolder(id){const r=findNode(DB.docs,id);if(r){r.n.open=r.n.open===false;save();renderDocs()}}
+function moveNode(srcId,targetId){
+  if(!srcId||srcId===targetId)return;
+  const s=findNode(DB.docs,srcId);if(!s)return;
+  if(s.n.type==='folder'&&isAncestor(s.n,targetId))return;
+  const t=findNode(DB.docs,targetId);if(!t)return;
+  let destList,destFolder=null;
+  if(t.n.type==='folder'){if(!t.n.children)t.n.children=[];destList=t.n.children;destFolder=t.n}
+  else destList=t.list;
+  if(destList===s.list&&destFolder===s.parent)return;
+  s.list.splice(s.list.indexOf(s.n),1);
+  destList.push(s.n);
+  if(destFolder)destFolder.open=true;
+  save();renderDocs();toast('已移动');
+}
+/* ---------- docs: 编辑器（含块级所见即所得） ---------- */
+function setDocMode(m){docMode=m;renderDocs()}
+function currentNote(){const r=selDoc?findNode(DB.docs,selDoc):null;return r&&r.n.type==='note'?r.n:null}
+function toggleLive(){
+  if(docUnlocked&&editingIdx!==null){const ta=document.querySelector('.blk-edit');if(ta)ta.blur()}
+  docUnlocked=!docUnlocked;
+  renderDocs();
+  toast(docUnlocked?'已解锁：点击任意区块即可编辑':'预览已锁定');
+}
+function splitBlocks(src){
+  const lines=(src||'').split('\n');
+  const blocks=[];let i=0;
+  const blank=l=>/^\s*$/.test(l);
+  const fence=l=>/^\s*(```|~~~)/.test(l);
+  const headOrHr=l=>/^\s*#{1,6}\s/.test(l)||/^(-{3,}|\*{3,})\s*$/.test(l.trim());
+  const quote=l=>/^\s*>/.test(l);
+  const list=l=>/^\s*([-*+]|\d+\.)\s+/.test(l);
+  const push=(s,e)=>blocks.push({start:s,end:e,src:lines.slice(s,e).join('\n')});
+  while(i<lines.length){
+    if(blank(lines[i])){i++;continue}
+    const start=i;
+    if(i===0&&lines[0].trim()==='---'){
+      let j=1;
+      while(j<lines.length&&lines[j].trim()!=='---')j++;
+      if(j<lines.length){push(start,j+1);blocks[blocks.length-1].type='fm';i=j+1;continue}
+    }
+    if(fence(lines[i])){i++;while(i<lines.length&&!/^\s*(```|~~~)\s*$/.test(lines[i]))i++;if(i<lines.length)i++;push(start,i);continue}
+    if(headOrHr(lines[i])){i++;push(start,i);continue}
+    if(quote(lines[i])){while(i<lines.length&&quote(lines[i]))i++;push(start,i);continue}
+    if(lines[i].includes('|')&&lines[i+1]&&/^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(lines[i+1])){
+      while(i<lines.length&&!blank(lines[i])&&lines[i].includes('|'))i++;push(start,i);continue}
+    if(list(lines[i])){i++;while(i<lines.length&&!blank(lines[i])&&!fence(lines[i])&&!headOrHr(lines[i])&&!quote(lines[i]))i++;push(start,i);continue}
+    while(i<lines.length&&!blank(lines[i])&&!fence(lines[i])&&!headOrHr(lines[i])&&!quote(lines[i])&&!list(lines[i]))i++;
+    push(start,i);
+  }
+  return blocks;
+}
+function renderFm(src){
+  const rows=src.split('\n').slice(1,-1).map(l=>{
+    const i=l.indexOf(':');
+    if(i<0)return '';
+    const k=l.slice(0,i).trim(),v=l.slice(i+1).trim();
+    if(!k)return '';
+    const ev=esc(v);
+    return '<div class="fm-row"><span class="fm-k">'+esc(k)+'</span><span class="fm-v">'+(ev||'<span style="opacity:.35">未填写</span>')+'</span></div>';
+  }).join('');
+  return '<div class="fm-card">'+(rows||'<span style="opacity:.35">frontmatter</span>')+'</div>';
+}
+function buildPreviewInto(pv,content){
+  curBlocks=splitBlocks(content);
+  pv.classList.toggle('editable',docUnlocked);
+  pv.innerHTML=curBlocks.length
+    ?curBlocks.map((b,i)=>'<div class="blk" data-i="'+i+'">'+(b.type==='fm'?renderFm(b.src):mdRender(b.src))+'</div>').join('')
+    :'<p style="color:var(--ink-3)">（空笔记'+(docUnlocked?' — 点击此处开始编辑）':'）')+'</p>';
+  pv.onclick=e=>{
+    if(!docUnlocked||editingIdx!==null)return;
+    const blk=e.target.closest('.blk');
+    if(blk&&blk.dataset.i!==undefined)startEdit(+blk.dataset.i,e);
+    else if(!curBlocks.length)startEdit(0,e);
+  };
+  pv.onmousedown=e=>{
+    if(docUnlocked&&editingIdx!==null){const blk=e.target.closest('.blk');if(blk&&+blk.dataset.i!==editingIdx)pendingIdx=+blk.dataset.i}
+  };
+}
+function renderDocEditor(){
+  if(editingIdx!==null&&curBlocks&&curBlocks[editingIdx]){const ta=document.querySelector('.blk-edit');commitEdit(ta?ta.value:curBlocks[editingIdx].src,true)}
+  const panel=document.getElementById('docEditorPanel');
+  const note=currentNote();
+  if(!note){
+    panel.innerHTML='<div class="empty" style="margin:auto;padding:70px 20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;opacity:.4;margin-bottom:10px"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><p>左侧选择或新建一条笔记</p></div>';
+    return;
+  }
+  panel.innerHTML=`
+    <div class="de-head">
+      <span class="de-title">${esc(note.name)}</span>
+      <span class="de-meta">${fmtTime(note.updatedAt)}</span>
+      <div class="seg">${[['edit','源码'],['view','预览']].map(([m,t])=>`<button class="${docMode===m?'on':''}" onclick="setDocMode('${m}')">${t}</button>`).join('')}</div>
+      ${docMode!=='edit'?`<button class="icon-btn" id="liveToggle" title="${docUnlocked?'锁定预览（只读）':'解锁预览（点击区块编辑）'}" style="${docUnlocked?'color:var(--accent-deep);background:var(--accent-soft)':''}">${docUnlocked?ICO_EDIT:ICO_LOCK}</button>`:''}
+    </div>
+    <div class="de-body">
+      <textarea id="docEditor" class="${docMode==='view'?'hide':''}" placeholder="# 开始书写 Markdown …"></textarea>
+      <div id="docPreview" class="md ${docMode==='edit'?'hide':''}"></div>
+    </div>`;
+  const lt=document.getElementById('liveToggle');if(lt)lt.onclick=toggleLive;
+  const ta=document.getElementById('docEditor');
+  ta.value=note.content||'';
+  let t;
+  ta.addEventListener('input',()=>{
+    clearTimeout(t);
+    t=setTimeout(()=>{
+      note.content=ta.value;note.updatedAt=Date.now();save();
+      const pv=document.getElementById('docPreview');
+      if(pv)buildPreviewInto(pv,ta.value);
+      const meta=panel.querySelector('.de-meta');
+      if(meta)meta.textContent=fmtTime(note.updatedAt);
+    },400);
+  });
+  const pv=document.getElementById('docPreview');
+  if(pv)buildPreviewInto(pv,note.content||'');
+}
+function startEdit(idx,e){
+  if(editingIdx!==null)return;
+  const pv=document.getElementById('docPreview');if(!pv)return;
+  let blk=pv.querySelector('.blk[data-i="'+idx+'"]');
+  if(!blk){
+    if(curBlocks.length)return;
+    curBlocks=[{src:'',start:0,end:0}];
+    pv.innerHTML='<div class="blk" data-i="0"></div>';
+    blk=pv.querySelector('.blk');
+  }
+  editingIdx=idx;
+  blk.classList.add('editing');
+  const src=curBlocks[idx].src;
+  blk.innerHTML='<textarea class="blk-edit" spellcheck="false"></textarea>';
+  const ta=blk.querySelector('textarea');
+  ta.value=src;
+  const fit=()=>{ta.style.height='auto';ta.style.height=Math.max(ta.scrollHeight,44)+'px'};
+  fit();
+  ta.addEventListener('input',fit);
+  ta.addEventListener('keydown',ev=>{
+    if(ev.key==='Escape'||((ev.metaKey||ev.ctrlKey)&&ev.key==='Enter')){ev.preventDefault();ta.blur()}
+  });
+  ta.addEventListener('blur',()=>{if(editingIdx===idx)commitEdit(ta.value)});
+  let ratio=.5;
+  if(e&&e.clientY){const r=blk.getBoundingClientRect();ratio=Math.min(.95,Math.max(0,(e.clientY-r.top)/Math.max(r.height,1)))}
+  ta.focus();
+  const pos=Math.min(src.length,Math.floor(src.length*ratio));
+  const ls=src.slice(0,pos).lastIndexOf('\n');
+  const p=ls===-1?pos:ls+1;
+  ta.setSelectionRange(p,p);
+}
+function commitEdit(val,skipRender){
+  const idx=editingIdx;
+  editingIdx=null;
+  const chain=pendingIdx;pendingIdx=null;
+  if(idx===null||!curBlocks||!curBlocks[idx])return;
+  const note=currentNote();if(!note)return;
+  const b=curBlocks[idx];
+  const lines=(note.content||'').split('\n');
+  const nl=(val||'').replace(/\n+$/,'').split('\n');
+  lines.splice(b.start,b.end-b.start,...nl);
+  note.content=lines.join('\n');note.updatedAt=Date.now();save();
+  if(skipRender)return;
+  const pv=document.getElementById('docPreview');
+  const ta0=document.getElementById('docEditor');
+  if(pv)buildPreviewInto(pv,note.content);
+  if(ta0)ta0.value=note.content;
+  const meta=document.querySelector('#docEditorPanel .de-meta');
+  if(meta)meta.textContent=fmtTime(note.updatedAt);
+  if(chain!==null&&chain!==idx)requestAnimationFrame(()=>startEdit(chain,null));
+}
+/* ---------- docs: 增删改 ---------- */
+let nameCb=null;
+function askName(title,val,cb){nameCb=cb;openModal(`
+  <div class="modal-head"><h3>${esc(title)}</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+  <div class="modal-body"><div class="field"><label>名称</label><input id="f-nname" value="${esc(val||'')}" placeholder="输入名称"></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="submitName()">确定</button></div>`)}
+function submitName(){const v=document.getElementById('f-nname').value.trim();if(!v){toast('请填写名称');return}closeModal();const cb=nameCb;nameCb=null;cb&&cb(v)}
+function newNote(folderId){askName('新建笔记','',name=>{
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  const now=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+  const note={id:uid(),name,type:'note',updatedAt:Date.now(),content:'---\ndescription: \ntags: \ncreated: '+now+'\n---\n\n# '+name+'\n\n'};
+  if(folderId){const f=findNode(DB.docs,folderId);if(f){(f.n.children=f.n.children||[]).push(note);f.n.open=true}else DB.docs.push(note)}
+  else DB.docs.push(note);
+  selDoc=note.id;save();if(view==='docs')renderDocs();else switchView('docs');toast('已创建')})}
+function newFolder(folderId){askName('新建文件夹','',name=>{
+  const node={id:uid(),name,type:'folder',open:true,children:[]};
+  if(folderId){const f=findNode(DB.docs,folderId);if(f){(f.n.children=f.n.children||[]).push(node);f.n.open=true}else DB.docs.push(node)}
+  else DB.docs.push(node);
+  save();if(view==='docs')renderDocs();toast('已创建')})}
+function renameNode(id){const r=findNode(DB.docs,id);if(!r)return;askName('重命名',r.n.name,v=>{r.n.name=v;save();render()})}
+function delNode(id){
+  const r=findNode(DB.docs,id);if(!r)return;
+  const cnt=r.n.type==='folder'?countNotes(r.n):1;
+  if(!confirm(r.n.type==='folder'?`删除文件夹「${r.n.name}」及其 ${cnt} 条笔记？`:`删除笔记「${r.n.name}」？`))return;
+  r.list.splice(r.list.indexOf(r.n),1);
+  if(selDoc===id||isAncestor(r.n,selDoc))selDoc=null;
+  save();render();toast('已删除');
+}
+/* ---------- json 工具 ---------- */
+let jTab='format', jSel=null, jMode='view', jUnlocked=false, jExpand={}, jAddSegs=null;
+const ICO_COPY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+const ICO_MSG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="15" x2="12.01" y2="15"/></svg>';
+const JTABS=[['format','快速格式化'],['diff','比对'],['docs','JSON 文档']];
+function jCur(){return DB.jsonDocs.find(d=>d.id===jSel)}
+function renderJson(){
+  document.getElementById('jsonTabs').innerHTML=JTABS.map(([k,t])=>`<span class="chip ${jTab===k?'on':''}" data-jtab="${k}">${t}</span>`).join('');
+  document.querySelectorAll('[data-jtab]').forEach(c=>c.onclick=()=>{jTab=c.dataset.jtab;renderJson()});
+  document.getElementById('jsonFormat').classList.toggle('hide',jTab!=='format');
+  document.getElementById('jsonDiff').classList.toggle('hide',jTab!=='diff');
+  document.getElementById('jsonDocsPanel').classList.toggle('hide',jTab!=='docs');
+  document.querySelectorAll('[data-count="jsonDocs"]').forEach(c=>c.textContent=DB.jsonDocs.length);
+  if(jTab==='docs'){
+    if(!jSel&&DB.jsonDocs.length)jSel=DB.jsonDocs[0].id;
+    renderJList();renderJEditor();
+  }
+}
+function setJMode(m){jMode=m;renderJson()}
+function jfmt(space){
+  const msg=document.getElementById('jfMsg');
+  try{const o=JSON.parse(document.getElementById('jfIn').value);
+    document.getElementById('jfOut').value=JSON.stringify(o,null,space);
+    msg.textContent='✓ 合法 JSON，已'+(space?'格式化':'压缩');msg.className='json-msg ok';
+  }catch(e){msg.textContent='✗ 不是合法 JSON：'+e.message;msg.className='json-msg err'}
+}
+function jesc(){document.getElementById('jfOut').value=JSON.stringify(document.getElementById('jfIn').value);
+  const msg=document.getElementById('jfMsg');msg.textContent='✓ 已转义为 JSON 字符串';msg.className='json-msg ok'}
+function junes(){
+  const msg=document.getElementById('jfMsg');const raw=document.getElementById('jfIn').value;
+  try{const o=JSON.parse(raw);
+    document.getElementById('jfOut').value=typeof o==='string'?o:JSON.stringify(o,null,2);
+    msg.textContent='✓ 已还原';msg.className='json-msg ok';
+  }catch(e){msg.textContent='✗ 无法解析：'+e.message;msg.className='json-msg err'}
+}
+function copyJfOut(){const v=document.getElementById('jfOut').value;if(!v)return toast('输出为空');copy(v,'输出已复制')}
+function jType(v){return v===null?'null':Array.isArray(v)?'array':typeof v==='object'?'object':'value'}
+function diffWalk(a,b,p,out){
+  const ta=jType(a),tb=jType(b);
+  if(ta!==tb){out.push({p,t:'chg',a,b});return}
+  if(ta==='object'){
+    new Set([...Object.keys(a),...Object.keys(b)]).forEach(k=>{
+      const np=p+'.'+k;
+      if(!(k in b))out.push({p:np,t:'del',a:a[k]});
+      else if(!(k in a))out.push({p:np,t:'add',a:b[k]});
+      else diffWalk(a[k],b[k],np,out)});
+  }else if(ta==='array'){
+    const n=Math.max(a.length,b.length);
+    for(let i=0;i<n;i++){const np=p+'['+i+']';
+      if(i>=b.length)out.push({p:np,t:'del',a:a[i]});
+      else if(i>=a.length)out.push({p:np,t:'add',a:b[i]});
+      else diffWalk(a[i],b[i],np,out)}
+  }else if(a!==b)out.push({p,t:'chg',a,b});
+}
+function jdCompare(){
+  const msg=document.getElementById('jdMsg'),box=document.getElementById('jdResult');
+  let a,b;
+  try{a=JSON.parse(document.getElementById('jdA').value)}catch(e){msg.textContent='✗ JSON A 不合法：'+e.message;msg.className='json-msg err';box.innerHTML='';return}
+  try{b=JSON.parse(document.getElementById('jdB').value)}catch(e){msg.textContent='✗ JSON B 不合法：'+e.message;msg.className='json-msg err';box.innerHTML='';return}
+  msg.textContent='';
+  const out=[];diffWalk(a,b,'$',out);
+  if(!out.length){box.innerHTML='<div class="json-msg ok">✓ 两个 JSON 完全一致</div>';return}
+  const short=v=>{const s=JSON.stringify(v)??'undefined';return s.length>60?s.slice(0,60)+'…':s};
+  box.innerHTML='<div class="json-msg" style="margin-bottom:10px">共 '+out.length+' 处差异：</div>'+out.map(r=>{
+    const cls=r.t==='add'?'diff-add':r.t==='del'?'diff-del':'diff-chg';
+    const badge=r.t==='add'?'只在 B':r.t==='del'?'只在 A':'值不同';
+    const val=r.t==='add'?esc(short(r.a)):r.t==='del'?esc(short(r.a)):esc(short(r.a))+' <span style="opacity:.5">→</span> '+esc(short(r.b));
+    return '<div class="diff-row '+cls+'"><span class="diff-badge">'+badge+'</span><span class="diff-path">'+esc(r.p)+'</span><span class="diff-val">'+val+'</span></div>';
+  }).join('');
+}
+function newJsonDoc(){askName('新建 JSON 文档','',name=>{
+  const doc={id:uid(),name,updatedAt:Date.now(),content:'{\n  "key": "value"\n}',comments:{}};
+  DB.jsonDocs.unshift(doc);jSel=doc.id;jMode='view';jExpand={};
+  save();if(view==='json'&&jTab==='docs'){renderJson()}else{switchView('json');jTab='docs';renderJson()}
+  toast('已创建')})}
+function jRename(id){const d=DB.jsonDocs.find(x=>x.id===id);if(!d)return;askName('重命名',d.name,v=>{d.name=v;d.updatedAt=Date.now();save();renderJson()})}
+function jDelDoc(id){
+  if(!confirm('删除该 JSON 文档？'))return;
+  DB.jsonDocs=DB.jsonDocs.filter(x=>x.id!==id);
+  if(jSel===id)jSel=DB.jsonDocs[0]?.id||null;
+  save();renderJson();toast('已删除');
+}
+function copyJ(){const d=jCur();if(d)copy(d.content,'原始 JSON 已复制')}
+function renderJList(){
+  const list=DB.jsonDocs.filter(d=>!query||d.name.toLowerCase().includes(query));
+  document.getElementById('jsonList').innerHTML=(list.length?list.map(d=>`
+    <div class="tree-row ${d.id===jSel?'sel':''}" data-id="${d.id}" onclick="jSel='${d.id}';jMode='view';renderJson()">
+      ${ICO_DOC}
+      <span class="t-name">${esc(d.name)}</span>
+      <span class="t-acts">
+        <button class="icon-btn" title="重命名" onclick="event.stopPropagation();jRename('${d.id}')">${ICO_EDIT}</button>
+        <button class="icon-btn danger" title="删除" onclick="event.stopPropagation();jDelDoc('${d.id}')">${ICO_TRASH}</button>
+      </span>
+    </div>`).join(''):'<div class="empty" style="padding:26px 8px"><p>暂无文档</p></div>')
+    +'<div class="tree-row" style="justify-content:center;border-style:dashed;color:var(--ink-3)" onclick="newJsonDoc()">＋ 新建</div>';
+}
+function getIn(o,segs){return segs.reduce((v,s)=>v==null?v:v[s],o)}
+function setIn(o,segs,v){const p=getIn(o,segs.slice(0,-1));const last=segs[segs.length-1];if(Array.isArray(p))p[Number(last)]=v;else p[last]=v}
+function delIn(o,segs){const p=getIn(o,segs.slice(0,-1));const last=segs[segs.length-1];if(Array.isArray(p))p.splice(Number(last),1);else delete p[last]}
+function cleanComments(doc,segs){
+  const rm=Object.keys(doc.comments).filter(k=>{try{const a=JSON.parse(k);return a.length>=segs.length&&segs.every((s,i)=>a[i]===s)}catch(e){return false}});
+  rm.forEach(k=>delete doc.comments[k]);
+}
+function jIsOpen(pathStr,depth){return pathStr in jExpand?jExpand[pathStr]:depth<2}
+function jNode(val,key,segs,depth){
+  const pathStr=JSON.stringify(segs);
+  const t=jType(val);
+  const isContainer=t==='object'||t==='array';
+  const kids=isContainer?(t==='object'?Object.keys(val):val.map((_,i)=>i)):[];
+  const open=isContainer&&jIsOpen(pathStr,depth);
+  const cmt=(jCur().comments&&jCur().comments[pathStr])||'';
+  const kind=isContainer?(t==='object'?'obj':'arr'):'val';
+  let row='<div class="jn-row '+(open?'open':'')+'" data-kind="'+kind+'" data-path=\''+esc(pathStr)+'\'>';
+  row+='<span class="jn-tw">'+(isContainer?'<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>':'<span style="width:3px;height:3px;border-radius:50%;background:var(--line-2)"></span>')+'</span>';
+  if(key!==null)row+='<span class="jn-key">'+esc(key)+'</span><span class="jn-colon">:</span>';
+  if(!isContainer){
+    const cls=t==='string'?'jn-str':t==='number'?'jn-num':(t==='boolean'?'jn-bool':'jn-null');
+    const vs=t==='string'?'"'+esc(val)+'"':esc(String(val));
+    row+='<span class="jn-val '+cls+'">'+vs+'</span>';
+  }else{
+    row+='<span class="jn-val jn-sum">'+(t==='object'?'{':'[')+(open?'':' '+kids.length+' 项 '+(t==='object'?'}':']'))+'</span>';
+  }
+  if(cmt)row+='<span class="jn-cmt" data-cmtpath=\''+esc(pathStr)+'\' title="'+esc(cmt)+'">💬 '+esc(cmt)+'</span>';
+  if(jUnlocked){
+    row+='<span class="jn-acts">'
+      +'<button class="icon-btn" data-act="edit" title="编辑值">'+ICO_EDIT+'</button>'
+      +(isContainer?'<button class="icon-btn" data-act="add" title="添加子节点">'+ICO_PLUS+'</button>':'')
+      +(depth>0?'<button class="icon-btn danger" data-act="del" title="删除节点">'+ICO_TRASH+'</button>':'')
+      +'<button class="icon-btn" data-act="cmt" title="'+(cmt?'编辑注释':'添加注释')+'">'+ICO_MSG+'</button>'
+      +'</span>';
+  }
+  row+='</div>';
+  if(isContainer&&open){
+    row+='<div class="jn-kids">'+(t==='object'
+      ?kids.map(k=>jNode(val[k],k,[...segs,k],depth+1)).join('')
+      :kids.map(i=>jNode(val[i],i,[...segs,i],depth+1)).join(''))+'</div>';
+  }
+  return row;
+}
+function renderJEditor(){
+  const panel=document.getElementById('jsonEditorPanel');
+  const doc=jCur();
+  if(!doc){
+    panel.innerHTML='<div class="empty" style="margin:auto;padding:70px 20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;opacity:.4;margin-bottom:10px"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 012 2v5c0 1.1.9 2 2 2h1"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 00-2 2v5a2 2 0 01-2 2h-1"/></svg><p>左侧选择或新建一个 JSON 文档</p></div>';
+    return;
+  }
+  panel.innerHTML=`
+    <div class="de-head">
+      <span class="de-title">${esc(doc.name)}</span>
+      <span class="de-meta">${fmtTime(doc.updatedAt)}</span>
+      <div class="seg">${[['source','源码'],['view','预览']].map(([m,t])=>`<button class="${jMode===m?'on':''}" onclick="setJMode('${m}')">${t}</button>`).join('')}</div>
+      ${jMode==='view'?`<button class="icon-btn" id="jLiveToggle" title="${jUnlocked?'锁定（只读预览）':'解锁（点击节点编辑）'}" style="${jUnlocked?'color:var(--accent-deep);background:var(--accent-soft)':''}">${jUnlocked?ICO_EDIT:ICO_LOCK}</button>`:''}
+      <button class="icon-btn" id="jCopyBtn" title="复制原始 JSON">${ICO_COPY}</button>
+    </div>
+    <div class="de-body">`+(jMode==='source'
+      ?'<textarea id="jsonSrc" class="json-src" spellcheck="false" placeholder=\'{ "key": "value" }\'></textarea>'
+      :'<div id="jsonTreeWrap" class="jtree '+(jUnlocked?'jun':'')+'"></div>')+`</div>`;
+  document.getElementById('jLiveToggle')?.addEventListener('click',()=>{jUnlocked=!jUnlocked;renderJson();toast(jUnlocked?'已解锁：点击节点编辑，悬停显示操作':'预览已锁定')});
+  document.getElementById('jCopyBtn')?.addEventListener('click',copyJ);
+  if(jMode==='source'){
+    const ta=document.getElementById('jsonSrc');
+    ta.value=doc.content||'';
+    let t;
+    ta.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>{doc.content=ta.value;doc.updatedAt=Date.now();save();
+      const meta=panel.querySelector('.de-meta');if(meta)meta.textContent=fmtTime(doc.updatedAt)},400)});
+  }else{
+    renderJTree(panel.querySelector('#jsonTreeWrap'),doc);
+  }
+}
+function renderJTree(wrap,doc){
+  let obj;
+  try{obj=JSON.parse(doc.content||'null')}
+  catch(e){wrap.innerHTML='<div class="json-err">JSON 解析失败：'+esc(e.message)+'<br><br>请切换到「源码」模式修复语法。</div>';return}
+  wrap.innerHTML=jNode(obj,null,[],0);
+  wrap.querySelectorAll('.jn-row').forEach(row=>{
+    const segs=JSON.parse(row.dataset.path);
+    row.addEventListener('click',e=>{
+      if(e.target.closest('[data-act]'))return;
+      const cmtEl=e.target.closest('.jn-cmt');
+      if(cmtEl){if(jUnlocked)editJComment(row.dataset.path);return}
+      if(row.dataset.kind!=='val'){const p=row.dataset.path;jExpand[p]=!row.classList.contains('open');renderJEditor()}
+      else if(jUnlocked)editJValue(segs,row);
+    });
+    row.querySelectorAll('[data-act]').forEach(btn=>btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const act=btn.dataset.act;
+      if(act==='edit')editJValue(segs,row);
+      else if(act==='add')addJChild(row.dataset.path);
+      else if(act==='del')delJNode(row.dataset.path);
+      else if(act==='cmt')editJComment(row.dataset.path);
+    }));
+  });
+}
+function editJValue(segs,row){
+  const doc=jCur();let obj;try{obj=JSON.parse(doc.content)}catch(e){return toast('JSON 不合法，请到源码模式修复')}
+  const cur=getIn(obj,segs);
+  const span=row.querySelector('.jn-val');if(!span)return;
+  const inp=document.createElement('input');inp.className='jn-edit';
+  inp.value=typeof cur==='string'?cur:JSON.stringify(cur);
+  span.replaceWith(inp);inp.focus();inp.select();
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.dataset.cancel='1';inp.blur()}});
+  inp.addEventListener('blur',()=>{
+    if(inp.dataset.cancel){renderJEditor();return}
+    let v;const txt=inp.value.trim();
+    try{v=JSON.parse(txt)}catch(e){v=inp.value}
+    try{setIn(obj,segs,v)}catch(e){toast('设置失败');renderJEditor();return}
+    doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();save();
+    renderJEditor();
+  });
+}
+function addJChild(pathStr){
+  const doc=jCur();let obj;try{obj=JSON.parse(doc.content)}catch(e){return toast('JSON 不合法，请到源码模式修复')}
+  const segs=JSON.parse(pathStr);
+  const parent=getIn(obj,segs);
+  if(jType(parent)!=='object'&&jType(parent)!=='array')return toast('只能向对象或数组添加子节点');
+  jAddSegs=segs;
+  const isArr=Array.isArray(parent);
+  openModal(`
+    <div class="modal-head"><h3>${isArr?'添加数组项':'添加子节点'}</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      ${isArr?'':'<div class="field"><label>键名</label><input id="f-jkey" placeholder="myKey"></div>'}
+      <div class="field"><label>值（支持 JSON：123 / "文本" / true / {"a":1}；纯文本将按字符串处理）</label><textarea id="f-jval" style="min-height:90px" placeholder='"hello" 或 123 或 { "a": 1 }'></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="addJChildSave()">添加</button></div>`);
+}
+function addJChildSave(){
+  const doc=jCur();let obj;try{obj=JSON.parse(doc.content)}catch(e){return toast('JSON 不合法')}
+  const parent=getIn(obj,jAddSegs);
+  let v;const t=document.getElementById('f-jval').value.trim();
+  try{v=JSON.parse(t)}catch(e){v=document.getElementById('f-jval').value}
+  if(Array.isArray(parent))parent.push(v);
+  else{
+    const k=document.getElementById('f-jkey').value.trim();
+    if(!k){toast('请填写键名');return}
+    parent[k]=v;
+  }
+  doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();save();
+  jExpand[JSON.stringify(jAddSegs)]=true;
+  closeModal();renderJson();toast('已添加');
+}
+function delJNode(pathStr){
+  const segs=JSON.parse(pathStr);
+  if(!segs.length)return toast('不能删除根节点');
+  if(!confirm('删除该节点及其子节点？'))return;
+  const doc=jCur();let obj;try{obj=JSON.parse(doc.content)}catch(e){return toast('JSON 不合法')}
+  delIn(obj,segs);cleanComments(doc,segs);
+  doc.content=JSON.stringify(obj,null,2);doc.updatedAt=Date.now();save();
+  renderJson();toast('已删除');
+}
+function editJComment(pathStr){
+  const doc=jCur();
+  const cur=(doc.comments&&doc.comments[pathStr])||'';
+  openModal(`
+    <div class="modal-head"><h3>节点注释</h3><button class="icon-btn" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body"><div class="field"><label>注释内容（留空则删除注释，不影响原始 JSON）</label><textarea id="f-jcmt" style="min-height:90px">${esc(cur)}</textarea></div></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-accent" onclick="saveJComment('${esc(pathStr).replace(/'/g,"\\'")}')">保存</button></div>`);
+}
+function saveJComment(pathStr){
+  const doc=jCur();
+  const v=document.getElementById('f-jcmt').value.trim();
+  doc.comments=doc.comments||{};
+  if(v)doc.comments[pathStr]=v;else delete doc.comments[pathStr];
+  doc.updatedAt=Date.now();save();
+  closeModal();renderJson();toast(v?'注释已保存':'注释已删除');
+}
+/* ---------- export / import ---------- */
+function exportData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`ai-hub-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();toast('已导出备份文件');
+}
+function importData(){
+  const i=document.createElement('input');i.type='file';i.accept='.json';
+  i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{const d=JSON.parse(r.result);if(d.skills&&d.mcp&&d.prompts){if(!d.docs)d.docs=seed().docs;if(!d.jsonDocs)d.jsonDocs=seed().jsonDocs;DB=d;save();render();toast('导入成功')}else toast('文件格式不对')}catch(e){toast('导入失败：无效 JSON')}};
+    r.readAsText(f)};i.click();
+}
+/* ---------- render dispatch ---------- */
+function render(){
+  renderDash();
+  ({skills:renderSkills,mcp:renderMcp,prompts:renderPrompts,commands:renderCmds,docs:renderDocs,json:renderJson,tools:renderTools}[view]||(()=>{}))();
+}
+render();
+</script>
+</body>
+</html>
