@@ -372,7 +372,27 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
 .json-hi .n{color:#3E6E96}
 .json-hi .b{color:#8E5E9E}
 .code-block .b{color:#C9A0D0}
-.json-two pre.jf-out{min-height:300px;max-height:560px;border-radius:var(--r-sm)}
+.json-two pre.jf-out{min-height:300px;max-height:560px;border-radius:var(--r-sm);white-space:pre-wrap;word-break:break-all}
+/* JSON 工具格式化输出：折叠树 */
+.jt-h{cursor:pointer;user-select:none;border-radius:3px}
+.jt-h:hover{background:rgba(255,255,255,.07)}
+.jt-car{display:inline-block;width:1.1em;text-align:center;color:#8F897E;transition:transform .15s}
+.jt-h:hover .jt-car{color:#E0A883}
+.jt-node.closed .jt-car{transform:rotate(-90deg)}
+.jt-node.closed>.jt-kids,.jt-node.closed>.jt-cl{display:none}
+.jt-ell{display:none;color:#8F897E}
+.jt-node.closed>.jt-ell{display:inline}
+/* JSON 工具：结果搜索 */
+.jf-bar{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.jf-qwrap{position:relative;flex:1}
+.jf-qwrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--ink-3);pointer-events:none}
+.jf-qwrap input{width:100%;padding:6px 12px 6px 30px;border:1px solid var(--line);border-radius:99px;background:var(--panel);font-size:12.5px;outline:none;transition:all .15s}
+.jf-qwrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(201,100,66,.1)}
+.jf-qn{font-size:11.5px;color:var(--ink-3);white-space:nowrap;min-width:36px;text-align:right}
+.jf-nav{width:26px;height:26px;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);font-size:13px;line-height:1;display:grid;place-items:center;background:var(--panel);transition:all .15s;flex-shrink:0}
+.jf-nav:hover{border-color:var(--ink-3);color:var(--ink)}
+mark.jt-hit{background:rgba(224,168,131,.32);color:inherit;border-radius:2px;padding:0 1px}
+mark.jt-hit.cur{background:#E0A883;color:#262524}
 /* modal */
 .overlay{position:fixed;inset:0;background:rgba(31,30,29,.32);backdrop-filter:blur(5px);display:none;align-items:flex-start;justify-content:center;padding:7vh 20px;z-index:100;animation:fadeIn .2s ease}
 .overlay.show{display:flex}
@@ -551,7 +571,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;op
         <div class="json-panel hide" id="jsonFormat">
           <div class="json-two">
             <div class="field"><label>输入</label><textarea id="jfIn" placeholder='{ "key": "value" }'></textarea></div>
-            <div class="field"><label>输出</label><pre class="code-block jf-out" id="jfOut"><span style="opacity:.45">结果将显示在这里</span></pre></div>
+            <div class="field"><label>输出</label><div class="jf-bar"><div class="jf-qwrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="jfQ" placeholder="在结果中搜索…"></div><span class="jf-qn" id="jfQn"></span><button class="jf-nav" onclick="jfNav(-1)" title="上一个（Shift+Enter）">↑</button><button class="jf-nav" onclick="jfNav(1)" title="下一个（Enter）">↓</button></div><pre class="code-block jf-out" id="jfOut"><span style="opacity:.45">结果将显示在这里</span></pre></div>
           </div>
           <div class="json-actions">
             <button class="btn btn-primary btn-sm" onclick="jfmt(2)">格式化</button>
@@ -1314,7 +1334,7 @@ function delNode(id){
   save();render();toast('已删除');
 }
 /* ---------- json 工具 ---------- */
-let jTab='format', jMode='view', jUnlocked=false, jExpand={}, jAddSegs=null;
+let jTab='format', jMode='view', jUnlocked=false, jExpand={}, jAddSegs=null, jfRaw='';
 const ICO_COPY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
 const ICO_MSG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="15" x2="12.01" y2="15"/></svg>';
 const JTABS=[['format','快速格式化'],['diff','比对']];
@@ -1345,23 +1365,92 @@ function jsonHi(src){
   }
   return out+esc(src.slice(last));
 }
+/* 格式化输出：可折叠树（点击对象/数组的括号收起展开，默认全展开） */
+function jTree(v,ind){
+  if(v===null||typeof v!=='object')return jsonHi(JSON.stringify(v));
+  const arr=Array.isArray(v),keys=Object.keys(v);
+  if(!keys.length)return '<span class="b">'+(arr?'[]':'{}')+'</span>';
+  const open=arr?'[':'{',close=arr?']':'}';
+  const pad='\n'+' '.repeat(ind+2),end='\n'+' '.repeat(ind);
+  const kids=keys.map((k,i)=>{
+    const head=arr?'':jsonHi(JSON.stringify(k)+':')+' ';
+    return pad+head+jTree(v[k],ind+2)+(i<keys.length-1?',':'');
+  }).join('');
+  return '<span class="jt-node"><span class="jt-h" onclick="event.stopPropagation();jToggle(this)"><span class="jt-car">▾</span>'+open+'</span><span class="jt-kids">'+kids+end+'</span><span class="jt-cl">'+close+'</span><span class="jt-ell">'+open+'…'+close+'</span></span>';
+}
+function jToggle(el){el.parentElement.classList.toggle('closed')}
 function jfmt(space){
   const msg=document.getElementById('jfMsg');
   try{const o=JSON.parse(document.getElementById('jfIn').value);
-    document.getElementById('jfOut').innerHTML=jsonHi(JSON.stringify(o,null,space));
+    jfRaw=JSON.stringify(o,null,space);
+    document.getElementById('jfOut').innerHTML=space?jTree(o,0):jsonHi(jfRaw);
+    jfSearch();
     msg.textContent='✓ 合法 JSON，已'+(space?'格式化':'压缩');msg.className='json-msg ok';
   }catch(e){msg.textContent='✗ 不是合法 JSON：'+e.message;msg.className='json-msg err'}
 }
-function jesc(){document.getElementById('jfOut').innerHTML=jsonHi(JSON.stringify(document.getElementById('jfIn').value));
+function jesc(){jfRaw=JSON.stringify(document.getElementById('jfIn').value);
+  document.getElementById('jfOut').innerHTML=jsonHi(jfRaw);
+  jfSearch();
   const msg=document.getElementById('jfMsg');msg.textContent='✓ 已转义为 JSON 字符串';msg.className='json-msg ok'}
 function junes(){
   const msg=document.getElementById('jfMsg');const raw=document.getElementById('jfIn').value;
   try{const o=JSON.parse(raw);
-    document.getElementById('jfOut').innerHTML=jsonHi(typeof o==='string'?o:JSON.stringify(o,null,2));
+    jfRaw=typeof o==='string'?o:JSON.stringify(o,null,2);
+    document.getElementById('jfOut').innerHTML=jsonHi(jfRaw);
+    jfSearch();
     msg.textContent='✓ 已还原';msg.className='json-msg ok';
   }catch(e){msg.textContent='✗ 无法解析：'+e.message;msg.className='json-msg err'}
 }
-function copyJfOut(){const v=document.getElementById('jfOut').textContent;if(!v||v==='结果将显示在这里')return toast('输出为空');copy(v,'输出已复制')}
+function copyJfOut(){if(!jfRaw)return toast('输出为空');copy(jfRaw,'输出已复制')}
+/* 结果搜索：高亮全部匹配、Enter/Shift+Enter 上下跳转，自动展开含匹配的折叠节点 */
+let jtHits=[],jtIdx=-1;
+function jfClearHits(){
+  document.querySelectorAll('#jfOut mark.jt-hit').forEach(m=>m.replaceWith(document.createTextNode(m.textContent)));
+  const out=document.getElementById('jfOut');out.normalize();
+  jtHits=[];jtIdx=-1;document.getElementById('jfQn').textContent='';
+}
+function jfSearch(){
+  jfClearHits();
+  const q=document.getElementById('jfQ').value.toLowerCase();
+  if(!q)return;
+  const out=document.getElementById('jfOut');
+  const walker=document.createTreeWalker(out,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement&&n.parentElement.closest('mark')?NodeFilter.FILTER_REJECT:!n.nodeValue.toLowerCase().includes(q)?NodeFilter.FILTER_SKIP:NodeFilter.FILTER_ACCEPT});
+  const targets=[];let n;
+  while((n=walker.nextNode()))targets.push(n);
+  targets.forEach(node=>{
+    const text=node.nodeValue,low=text.toLowerCase();
+    const frag=document.createDocumentFragment();
+    let idx=0,pos;
+    while((pos=low.indexOf(q,idx))>=0){
+      if(pos>idx)frag.appendChild(document.createTextNode(text.slice(idx,pos)));
+      const mk=document.createElement('mark');mk.className='jt-hit';mk.textContent=text.slice(pos,pos+q.length);
+      frag.appendChild(mk);jtHits.push(mk);idx=pos+q.length;
+    }
+    if(idx<text.length)frag.appendChild(document.createTextNode(text.slice(idx)));
+    node.replaceWith(frag);
+  });
+  document.querySelectorAll('#jfOut .jt-node.closed').forEach(nd=>{if(nd.querySelector('.jt-kids mark.jt-hit'))nd.classList.remove('closed')});
+  if(jtHits.length){jtIdx=0;jfFocus(0)}else document.getElementById('jfQn').textContent='无匹配';
+}
+function jfFocus(i){
+  document.getElementById('jfQn').textContent=(i+1)+'/'+jtHits.length;
+  const m=jtHits[i],pre=document.getElementById('jfOut');
+  m.classList.add('cur');
+  const pr=pre.getBoundingClientRect(),mr=m.getBoundingClientRect();
+  if(pr.height&&(mr.top<pr.top||mr.bottom>pr.bottom))pre.scrollTop+=mr.top-pr.top-pre.clientHeight/2;
+}
+function jfNav(d){
+  if(!jtHits.length)return;
+  if(jtHits[jtIdx])jtHits[jtIdx].classList.remove('cur');
+  jtIdx=(jtIdx+d+jtHits.length)%jtHits.length;
+  jfFocus(jtIdx);
+}
+const jfq=document.getElementById('jfQ');
+jfq.addEventListener('input',jfSearch);
+jfq.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();jfNav(e.shiftKey?-1:1)}
+  else if(e.key==='Escape'){e.stopPropagation();jfq.value='';jfSearch()}
+});
 /* 快速格式化：粘贴到输入框后自动执行格式化 */
 document.getElementById('jfIn').addEventListener('paste',()=>{setTimeout(()=>{if(document.getElementById('jfIn').value.trim())jfmt(2)},0)});
 function jType(v){return v===null?'null':Array.isArray(v)?'array':typeof v==='object'?'object':'value'}
