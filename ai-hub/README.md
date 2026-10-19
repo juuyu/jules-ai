@@ -33,6 +33,17 @@ open ai-hub.html        # macOS
 
 > 也可以起一个静态服务：`python3 -m http.server 8931`，然后访问 `http://127.0.0.1:8931/ai-hub.html`。
 
+## 压缩脚本
+
+`minify.py`（与 `ai-hub.html` 同目录）可生成体积更小的分发副本：删除 HTML 注释、折叠冗余空白、压缩内联 CSS；**`<script>` 内容原样保留**（JS 含模板字符串，空白有语义，不做正则级压缩）。不改动源文件，仅用 Python 标准库，无任何依赖：
+
+```bash
+python3 minify.py                      # 默认: ai-hub.html -> ai-hub.min.html
+python3 minify.py in.html -o out.html  # 指定输入 / 输出
+```
+
+运行结束打印压缩前后与 gzip 体积对比。压缩副本可直接双击打开使用，功能与源文件完全一致。
+
 ## 数据与备份
 
 - 所有数据持久化在浏览器 `localStorage`（key：`aihub.v1`），首次打开自动写入示例数据
