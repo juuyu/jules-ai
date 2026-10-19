@@ -23,6 +23,7 @@
 | 全塞进去太浪费 | 分层投放：查表类信息放 `docs/`，AI 需要时自己读 | `docs/` + 「按需查阅」索引 |
 | 高频操作重复交代 | 固化成自定义命令 | `.gemini/commands/` |
 | 复杂流程容易漏步骤 | 做成可激活的技能（渐进披露） | `.gemini/skills/` |
+| 子任务污染主对话（探索、审查输出量大） | 派给子代理隔离执行，只回传结论 | `.gemini/agents/` |
 | 文档逐渐过时 | 更新流程命令化 + 定期体检 | `/docs:update`、`/docs:audit` |
 
 ## 快速开始（三步）
@@ -38,6 +39,7 @@ cp -r project-template/. /path/to/your-project/
 /memory show      # 确认 GEMINI.md 已加载
 /commands list    # 确认 5 个自定义命令已注册
 /skills list      # 确认 docs-maintainer 技能可见
+/agents list      # 确认 6 个子代理已注册
 ```
 
 > Windows 用户：在项目目录执行
@@ -62,6 +64,13 @@ templates/gemini-cli/
     │   │   ├── docs/update.toml       #   /docs:update 同步更新文档
     │   │   ├── docs/audit.toml        #   /docs:audit  文档体检（只读）
     │   │   └── code/error-code.toml   #   /code:error-code 新增错误码
+    │   ├── agents/                    # 子代理（隔离上下文执行子任务）
+    │   │   ├── code-reviewer.md       #   代码审查（只读）
+    │   │   ├── debugger.md            #   调试专家（假设-验证找根因）
+    │   │   ├── test-engineer.md       #   测试工程师（写并跑测试）
+    │   │   ├── security-auditor.md    #   安全审计（只读）
+    │   │   ├── architect-review.md    #   架构评审（只读，出方案）
+    │   │   └── explore.md             #   代码库探索（只读检索）
     │   └── skills/
     │       └── docs-maintainer/       # 技能：文档维护（按需激活）
     │           ├── SKILL.md
@@ -83,6 +92,7 @@ Gemini CLI 的上下文有四层投放方式，对应四种「AI 获取信息」
 | `@` 导入（在 GEMINI.md 内） | 加载 GEMINI.md 时展开 | 每次都占 token | 拆分常驻内容的模块化 |
 | 子目录 `GEMINI.md`（JIT） | AI 访问该目录文件时才加载 | 几乎为零 | 目录级知识（如工具类说明） |
 | Skills | AI 判断任务匹配后激活 | 只占一行描述 | 流程型知识（多步骤操作） |
+| Subagents 子代理 | 主 AI 判断或 `@代理名` 派发 | 只占一行描述 | 隔离执行的重活（探索、审查、调试） |
 | `docs/` + 索引 | AI 主动 `read_file` 时 | 零（AI 按需读） | 查表信息（错误码、架构） |
 
 **GEMINI.md 的层级**（官方定义，从低到高）：
@@ -256,7 +266,65 @@ my-skill/
 > 选型指南：什么时候该封装成技能、什么时候该用命令，见
 > [`ai-coding/10 能力封装`](../../ai-coding/10-skill-vs-command.md)。
 
-### 5. docs/ —— 项目知识库
+### 5. .gemini/agents/ —— 子代理（隔离上下文）
+
+子代理是**可派发任务的角色**：主 AI 按 description 自动委派，或用户用
+`@代理名` 强制指定。它在**独立的上下文**里执行子任务，只把结果回传主对话——
+探索、审查这类输出量大的活，不再污染主会话。
+
+**格式**（官方 schema，已核对）：每个代理一个 `.md` 文件，必须以 YAML
+frontmatter 开头，**正文就是该代理的系统提示词**：
+
+```markdown
+---
+name: code-reviewer            # 必填：小写字母/数字/连字符/下划线
+description: 必填：做什么 + 何时派它。主 AI 只看这段决定是否委派
+kind: local                    # 选填：local（默认）/ remote
+tools:                         # 选填：工具白名单，省略则继承主会话全部工具
+  - read_file
+  - grep_search
+model: gemini-3-flash-preview  # 选填：默认 inherit（跟随主会话模型）
+temperature: 0.2               # 选填：默认 1
+max_turns: 15                  # 选填：单次任务最大轮数
+---
+
+（正文 = 系统提示词：角色 / 工作流 / 输出格式 / 边界）
+```
+
+**目录与生效**：
+
+| 目录 | 作用域 |
+| --- | --- |
+| `.gemini/agents/*.md` | 项目级，随 git 与团队共享 |
+| `~/.gemini/agents/*.md` | 用户级，所有项目可用（同名时项目级优先） |
+
+改完运行 `/agents reload` 热加载，`/agents list` 查看已注册代理。
+
+**工具白名单**：支持通配符——`*`（全部）、`mcp_*`（全部 MCP 工具）。
+**只读代理**（reviewer / auditor / architect / explore）显式给
+`read_file`、`grep_search`、`glob`、`list_directory` 四件套，把「只报告、
+不修改」从提示词约定升级为机制保证。
+
+**本模板内置 6 个子代理**（选自 GitHub 流行配置，提示词已按本模板
+「原则 / 工作流 / 输出格式 / 边界」风格重写）：
+
+| 子代理 | 职责 | 工具 |
+| --- | --- | --- |
+| `code-reviewer` | 审查 diff / 文件，输出分级问题清单 | 只读四件套 |
+| `debugger` | 假设-验证循环定位根因，修复前先给证据链 | 全部（继承） |
+| `test-engineer` | 写并运行测试，只动测试文件 | 全部（继承） |
+| `security-auditor` | 扫注入 / XSS / 密钥泄漏等可证实风险 | 只读四件套 |
+| `architect-review` | 评审设计、大改动出分步实施计划 | 只读四件套 |
+| `explore` | 只读检索代码，回传结论 + 证据链 | 只读四件套 |
+
+**与 Skills 的分工**：Skill 沉淀「流程知识」（怎么一步步做），子代理定义
+「可派发的角色」（谁在独立上下文里做）。同一个专业方向（如代码审查）
+两边都放是正常现象：技能教方法，代理干活。
+
+> 子代理是较新的预览特性，frontmatter 字段与内置代理（generalist、
+> codebase_investigator 等）以官方文档为准。
+
+### 6. docs/ —— 项目知识库
 
 `docs/` 不是 Gemini CLI 的强制约定，而是本模板推荐的**开放知识层**：
 AI 用内置的读文件 / 搜索工具按需访问，不占常驻上下文。
@@ -277,7 +345,7 @@ AI 用内置的读文件 / 搜索工具按需访问，不占常驻上下文。
 - 信息**跟随某个目录里的代码**（工具类约定、模块设计）→ 子目录 JIT GEMINI.md；
 - 信息**跨目录、需要被引用**（错误码全表、架构图）→ `docs/` + 索引。
 
-### 6. .geminiignore —— 上下文排除
+### 7. .geminiignore —— 上下文排除
 
 语法同 `.gitignore`（支持 `*`、`/` 锚定、`!` 取反）。被排除的文件
 不会被 AI 读取，也不会出现在 `@` 补全中。**务必排除**：
@@ -826,6 +894,8 @@ Gemini CLI 会后台扫描**闲置 3 小时以上、至少 10 条用户消息**�
 | `/memory inbox` | 审阅 Auto Memory 候选（需开启实验特性） |
 | `/commands list` / `/commands reload` | 列出 / 热加载自定义命令 |
 | `/skills list` / `/skills enable` / `/skills disable` | 技能管理 |
+| `/agents list` / `/agents reload` | 列出 / 热加载子代理 |
+| `@代理名 任务描述` | 强制把任务派给指定子代理 |
 | `/mcp` | 查看 MCP 服务器连接与工具 |
 | `/mcp auth` / `/mcp enable` / `/mcp disable` | OAuth 登录 / 临时启停服务器 |
 | `/help` | 全部命令 |
@@ -850,6 +920,7 @@ Gemini CLI 会后台扫描**闲置 3 小时以上、至少 10 条用户消息**�
 | MCP 服务器 | `docs/tools/mcp-server.md` |
 | 自定义命令 | `docs/cli/custom-commands.md` |
 | 技能总览 / 创建 / 最佳实践 | `docs/cli/skills.md`、`docs/cli/creating-skills.md`、`docs/cli/skills-best-practices.md` |
+| 子代理（本地 / 远程） | `docs/core/subagents.md`、`docs/core/remote-agents.md` |
 | Auto Memory | `docs/cli/auto-memory.md` |
 | 忽略文件 | `docs/cli/gemini-ignore.md` |
 | 导入处理器 | `docs/reference/memport.md` |
