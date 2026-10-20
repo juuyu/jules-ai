@@ -16,6 +16,7 @@ type State struct {
 	Theme         string `json:"theme"`
 	SideCollapsed bool   `json:"sideCollapsed"`
 	DocsTree      bool   `json:"docsTree"`
+	LastView      string `json:"lastView"`
 }
 
 // Store 用互斥锁串行化同进程内的读写；文件本身也是原子写。
