@@ -28,14 +28,13 @@
 
 ```bash
 cd ai-hub
-go run ./cmd/aihub          # 默认监听 :8080，数据存 ./data
-# 打开 http://localhost:8080
+go run ./cmd/aihub          # 默认监听 :1066，数据存 ./data，启动后自动打开浏览器
 ```
 
 可选参数：
 
 ```bash
-go run ./cmd/aihub -addr :9000 -data ~/aihub-data
+go run ./cmd/aihub -addr :9000 -data ~/aihub-data -no-browser
 ```
 
 > 直接双击 `ai-hub.html`（file://）不再支持数据持久化：页面会提示本地服务未连接，只能临时浏览示例数据。

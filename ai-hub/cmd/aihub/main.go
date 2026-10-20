@@ -3,7 +3,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 
 	web "aihub"
@@ -12,8 +14,9 @@ import (
 )
 
 func main() {
-	addr := flag.String("addr", ":8080", "HTTP 监听地址")
+	addr := flag.String("addr", ":1066", "HTTP 监听地址")
 	dataDir := flag.String("data", "./data", "数据文件目录（aihub.json / prefs.json）")
+	noBrowser := flag.Bool("no-browser", false, "启动后不自动打开浏览器")
 	flag.Parse()
 
 	st, err := store.New(*dataDir)
@@ -25,6 +28,19 @@ func main() {
 	}
 
 	h := &api.Handler{Store: st, Page: web.Page}
-	log.Printf("AI Hub 已启动: http://localhost%s （数据目录: %s）", *addr, *dataDir)
-	log.Fatal(http.ListenAndServe(*addr, h.Mux()))
+
+	// 先绑定端口拿到实际地址（支持 :0 随机端口），再开浏览器，最后开始服务
+	ln, err := net.Listen("tcp", *addr)
+	if err != nil {
+		log.Fatalf("监听 %s 失败: %v", *addr, err)
+	}
+	url := fmt.Sprintf("http://localhost:%d", ln.Addr().(*net.TCPAddr).Port)
+	log.Printf("AI Hub 已启动: %s （数据目录: %s）", url, *dataDir)
+
+	if !*noBrowser {
+		if err := openBrowser(url); err != nil {
+			log.Printf("自动打开浏览器失败（可手动访问 %s）: %v", url, err)
+		}
+	}
+	log.Fatal(http.Serve(ln, h.Mux()))
 }
