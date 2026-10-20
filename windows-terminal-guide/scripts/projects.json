@@ -1,0 +1,8 @@
+{
+  "launchGemini": true,
+  "projects": [
+    { "name": "ai-hub", "path": "D:\\work\\ai-hub" },
+    { "name": "frontend", "path": "D:\\work\\frontend" },
+    { "name": "scripts", "path": "D:\\work\\scripts" }
+  ]
+}

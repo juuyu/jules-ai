@@ -1,0 +1,48 @@
+# ============================================================
+# Starship 提示符配置 —— 复制到 ~/.config/starship.toml
+# 风格: 双行 + 目录 + git + 语言版本 + 命令耗时
+# 图标显示依赖 Nerd 字体(见教程 01)
+# ============================================================
+
+add_newline = true
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$python\
+$golang\
+$cmd_duration\
+$line_break\
+$character"""
+
+[directory]
+truncation_length = 3        # 只显示最后 3 级目录
+truncate_to_repo = true      # git 仓库内从仓库根开始显示
+style = "bold cyan"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+
+[git_status]
+style = "bold red"
+
+[nodejs]
+format = "[$symbol$version]($style) "
+symbol = " "
+
+[python]
+format = "[$symbol$version]($style) "
+
+[golang]
+format = "[$symbol$version]($style) "
+
+[cmd_duration]
+min_time = 2000              # 超过 2 秒的命令显示耗时
+format = "took [$duration]($style) "
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
