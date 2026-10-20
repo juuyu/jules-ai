@@ -43,6 +43,8 @@ func (h *Handler) index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// 本地工具：页面与数据同源更新，禁用缓存避免改版后浏览器仍用旧页面
+	w.Header().Set("Cache-Control", "no-store")
 	_, _ = w.Write(h.Page)
 }
 
