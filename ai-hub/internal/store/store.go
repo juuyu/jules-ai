@@ -50,16 +50,13 @@ func (s *Store) ReadDB() ([]byte, error) {
 }
 
 // WriteDB 校验 JSON 合法后整文件原子覆盖，返回写入字节数。
+// docs 正文会被抽取为独立文件，因此最终落盘字节数可能与入参不同，这里返回实际大小。
 func (s *Store) WriteDB(raw []byte) (int, error) {
-	if !json.Valid(raw) {
-		return 0, errors.New("invalid json body")
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if err := atomicWrite(s.dbPath(), raw); err != nil {
+	out, err := s.IngestDB(raw)
+	if err != nil {
 		return 0, err
 	}
-	return len(raw), nil
+	return len(out), nil
 }
 
 // ReadState 读取偏好；文件缺失或损坏时返回零值（视为默认偏好）。
@@ -86,6 +83,9 @@ func (s *Store) WriteState(st State) error {
 
 // atomicWrite 在同目录写临时文件后 rename，保证目标文件要么是旧内容要么是新内容。
 func atomicWrite(path string, b []byte) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
 	f, err := os.CreateTemp(filepath.Dir(path), ".tmp-*")
 	if err != nil {
 		return err

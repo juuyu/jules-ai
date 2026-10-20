@@ -25,6 +25,8 @@ func (h *Handler) Mux() *http.ServeMux {
 	mux.HandleFunc("/", h.index)
 	mux.HandleFunc("/api/db", h.db)
 	mux.HandleFunc("/api/state", h.state)
+	mux.HandleFunc("/api/export", h.exportAll)
+	mux.HandleFunc("/api/docs/", h.docs)
 	return mux
 }
 

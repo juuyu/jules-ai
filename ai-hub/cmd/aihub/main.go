@@ -20,6 +20,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("初始化存储失败: %v", err)
 	}
+	if err := st.MigrateOnStartup(); err != nil {
+		log.Printf("警告: Docs 文件迁移未完成: %v", err)
+	}
 
 	h := &api.Handler{Store: st, Page: web.Page}
 	log.Printf("AI Hub 已启动: http://localhost%s （数据目录: %s）", *addr, *dataDir)
