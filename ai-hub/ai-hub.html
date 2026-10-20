@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Hub · 本地工作台</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231F1E1D'/%3E%3Cpath d='M12 5v14M6 8.5l12 7M6 15.5l12-7' stroke='%23FAF9F5' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
-<script>(function(){try{var t=localStorage.getItem('aihub.theme');if(!t)t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script>(function(){var t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&amp;family=Instrument+Sans:ital,wght@0,400..700;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
@@ -975,7 +975,7 @@ mark.jt-hit.cur{background:#E0A883;color:#262524}
         <div class="set-grid">
           <div class="set-card">
             <h3>数据与备份</h3>
-            <div class="set-sub">全部数据保存在本浏览器 localStorage，数据不出机器</div>
+            <div class="set-sub">全部数据通过本地服务保存在 data/ 目录的文件中，数据不出机器</div>
             <div class="set-row"><span class="dot"></span>本地存储运行中<span class="set-sp" id="setStorage">—</span></div>
             <div class="set-actions">
               <button class="btn btn-ghost" onclick="exportData()">
@@ -987,7 +987,7 @@ mark.jt-hit.cur{background:#E0A883;color:#262524}
                 导入备份
               </button>
             </div>
-            <p class="set-hint">导出文件为完整 JSON 备份（Skills / MCP / Prompts / Commands / Docs / 工具箱）。导入会覆盖当前全部数据；清除浏览器数据或更换浏览器前，请先导出备份。</p>
+            <p class="set-hint">导出文件为完整 JSON 备份（Skills / MCP / Prompts / Commands / Docs / 工具箱）。数据实体保存在服务端 data/aihub.json，可直接复制该文件备份；导入会覆盖当前全部数据。</p>
           </div>
         </div>
       </section>
@@ -1013,11 +1013,28 @@ mark.jt-hit.cur{background:#E0A883;color:#262524}
 </div>
 <script>
 /* ============================================================
-   AI Hub — 纯本地单页工作台
-   数据持久化: localStorage[aihub.v1]
+   AI Hub — 本地单页工作台
+   数据持久化: 本地 Go 服务（/api/db 全量业务数据、/api/state 界面偏好，文件存储）
 ============================================================ */
-const KEY='aihub.v1';
+const API='/api';
 const AV_COLORS=['#C96442','#6E8B5E','#4E6E8E','#8E6E9E','#B08D3E','#5E8B85','#9E5E6E','#7A7A5C'];
+/* ---------- 本地 API 访问层 ---------- */
+let DB=null;                       // 全量业务数据，boot() 拉取后可用
+let dbSize=0;                      // 服务端文件字节数（设置页展示）
+const prefs={theme:'',sideCollapsed:false,docsTree:false};
+async function putDB(){
+  try{
+    const r=await fetch(API+'/db',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(DB)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    dbSize=(await r.json()).size||0;
+  }catch(e){toast('保存失败：本地服务未运行')}
+}
+let saveT;
+function save(){clearTimeout(saveT);saveT=setTimeout(putDB,200)}   // 合并连续改动
+let stateT;
+function saveState(){clearTimeout(stateT);stateT=setTimeout(async()=>{
+  try{await fetch(API+'/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(prefs)})}catch(e){}
+},150)}
 function seed(){
   return {
     skills:[
@@ -1086,35 +1103,26 @@ const TPL={
   playwright:{name:'Playwright',cfg:{command:'npx',args:['-y','@playwright/mcp@latest'],env:{}}},
   memory:{name:'Memory',cfg:{command:'npx',args:['-y','@modelcontextprotocol/server-memory'],env:{}}},
 };
-let DB=load();
 let view='dashboard', query='', filter='all', selMcp=null, editingLinks=false;
-function load(){let d=null;try{d=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-  if(d&&d.skills){if(!d.docs)d.docs=seed().docs;migrateJsonDocs(d);migrateSkillCat(d);return d}
-  const s=seed();localStorage.setItem(KEY,JSON.stringify(s));return s}
-/* 旧数据无 cat 字段：skills 取首个标签兜底，prompts/commands 归入未分类 */
+/* 旧数据无 cat 字段：skills 取首个标签兜底，prompts/commands 归入未分类/未分组 */
 function migrateSkillCat(d){
-  let changed=false;
-  (d.skills||[]).forEach(s=>{if(!s.cat){s.cat=(s.tags&&s.tags[0])||'未分类';changed=true}});
-  (d.prompts||[]).forEach(p=>{if(!p.cat){p.cat='未分类';changed=true}});
-  (d.commands||[]).forEach(c=>{if(!c.cat){c.cat='未分组';changed=true}});
-  if(changed)try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}
+  (d.skills||[]).forEach(s=>{if(!s.cat)s.cat=(s.tags&&s.tags[0])||'未分类'});
+  (d.prompts||[]).forEach(p=>{if(!p.cat)p.cat='未分类'});
+  (d.commands||[]).forEach(c=>{if(!c.cat)c.cat='未分组'});
 }
 /* 旧版独立 jsonDocs 合并进 docs 目录树（fmt:'json'） */
 function migrateJsonDocs(d){
   if(!d.jsonDocs)return;
   d.jsonDocs.forEach(j=>d.docs.unshift({id:j.id||uid(),name:j.name,type:'note',fmt:'json',updatedAt:j.updatedAt||Date.now(),content:j.content,comments:j.comments||{}}));
   delete d.jsonDocs;
-  try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}
 }
-function save(){localStorage.setItem(KEY,JSON.stringify(DB))}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let toastT;
 function toast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1800)}
 function copy(text,msg){navigator.clipboard.writeText(text).then(()=>toast(msg||'已复制到剪贴板'))}
-/* ---------- 深浅主题 ---------- */
-const THEME_KEY='aihub.theme';
-function applyTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem(THEME_KEY,t)}catch(e){}}
+/* ---------- 深浅主题（偏好存服务端 /api/state） ---------- */
+function applyTheme(t){document.documentElement.dataset.theme=t;prefs.theme=t;saveState()}
 document.getElementById('themeBtn').addEventListener('click',()=>{
   const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
   applyTheme(next);toast(next==='dark'?'已切换到暗色模式':'已切换到浅色模式');
@@ -1133,14 +1141,12 @@ function switchView(v,silent){view=v;query='';document.getElementById('search').
   render();}
 window.addEventListener('popstate',()=>{const v=hashView();if(v){if(v!==view)switchView(v,true)}else history.replaceState({view},'','#/'+view)});
 window.addEventListener('hashchange',()=>{const v=hashView();if(v){if(v!==view)switchView(v,true)}else history.replaceState({view},'','#/'+view)});
-/* ---------- 侧边栏收起（图标 rail + Dock 悬浮） ---------- */
-const SIDE_KEY='aihub.sideCollapsed';
+/* ---------- 侧边栏收起（图标 rail + Dock 悬浮，偏好存服务端） ---------- */
 let sideCollapsed=false;
-try{sideCollapsed=localStorage.getItem(SIDE_KEY)==='1'}catch(e){}
 function applySide(){
   document.querySelector('.app').classList.toggle('side-collapsed',sideCollapsed);
   const b=document.querySelector('.side-collapse');if(b)b.title=sideCollapsed?'展开侧栏':'收起侧栏';
-  try{localStorage.setItem(SIDE_KEY,sideCollapsed?'1':'0')}catch(e){}
+  prefs.sideCollapsed=sideCollapsed;saveState();
 }
 function toggleSide(){sideCollapsed=!sideCollapsed;applySide()}
 document.getElementById('search').addEventListener('input',e=>{query=e.target.value.toLowerCase();render()});
@@ -1580,10 +1586,8 @@ function treeHtml(n){
   return noteRow(n);
 }
 function toggleFolder(id){const r=findNode(DB.docs,id);if(r){r.n.open=r.n.open===false;save();renderDocs()}}
-/* ---------- 目录面板折叠 / 全部折叠 ---------- */
-const TREE_KEY='aihub.docsTree';
+/* ---------- 目录面板折叠 / 全部折叠（偏好存服务端） ---------- */
 let treeCollapsed=false;
-try{treeCollapsed=localStorage.getItem(TREE_KEY)==='1'}catch(e){}
 function anyFolderOpen(list){return list.some(n=>n.type==='folder'&&(n.open!==false||anyFolderOpen(n.children||[])))}
 function updateDocsTools(){
   const b=document.getElementById('foldAllBtn');if(!b)return;
@@ -1594,7 +1598,7 @@ function updateDocsTools(){
 function applyTreeCollapsed(){
   const L=document.getElementById('docsLayout');if(!L)return;
   L.classList.toggle('tree-collapsed',treeCollapsed);
-  try{localStorage.setItem(TREE_KEY,treeCollapsed?'1':'0')}catch(e){}
+  prefs.docsTree=treeCollapsed;saveState();
   updateDocsTools();
 }
 function toggleDocsTree(){treeCollapsed=!treeCollapsed;applyTreeCollapsed();toast(treeCollapsed?'已收起目录':'已展开目录')}
@@ -2186,22 +2190,48 @@ function importData(){
 }
 /* ---------- 设置页 ---------- */
 function renderSettings(){
-  let size=0;try{size=(localStorage.getItem(KEY)||'').length}catch(e){}
   const total=DB.skills.length+DB.mcp.length+DB.prompts.length+DB.commands.length+docsTotal()+DB.tools.length;
-  document.getElementById('setStorage').textContent=`aihub.v1 · ${(size/1024).toFixed(1)} KB · 共 ${total} 条数据`;
+  document.getElementById('setStorage').textContent=`data/aihub.json · ${(dbSize/1024).toFixed(1)} KB · 共 ${total} 条数据`;
 }
 /* ---------- render dispatch ---------- */
 function render(){
   renderDash();
   ({skills:renderSkills,mcp:renderMcp,prompts:renderPrompts,commands:renderCmds,docs:renderDocs,json:renderJson,tools:renderTools,settings:renderSettings}[view]||(()=>{}))();
 }
-applyTreeCollapsed();
-applySide();
-(function initView(){
+/* ---------- 启动：从本地 Go 服务拉取数据与偏好 ---------- */
+async function boot(){
+  try{
+    const r=await fetch(API+'/db');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const txt=await r.text();
+    const parsed=JSON.parse(txt);
+    if(parsed&&parsed.empty===true){   // 首次启动：种子数据初始化并落盘
+      DB=seed();await putDB();
+    }else{
+      dbSize=new TextEncoder().encode(txt).length;
+      DB=parsed;
+    }
+  }catch(e){
+    DB=DB||seed();
+    const b=document.createElement('div');
+    b.textContent='无法连接本地数据服务（GET /api/db 失败）。请先在 ai-hub 目录运行：go run ./cmd/aihub';
+    b.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:999;background:var(--accent);color:#fff;font-size:12.5px;font-weight:600;padding:9px 16px;border-radius:99px;box-shadow:var(--shadow-lg)';
+    document.body.appendChild(b);setTimeout(()=>b.remove(),6000);
+  }
+  if(!DB.docs)DB.docs=seed().docs;
+  migrateJsonDocs(DB);migrateSkillCat(DB);
+  try{Object.assign(prefs,await (await fetch(API+'/state')).json())}catch(e){}
+  if(prefs.theme)document.documentElement.dataset.theme=prefs.theme;
+  sideCollapsed=!!prefs.sideCollapsed;
+  treeCollapsed=!!prefs.docsTree;
+  applySide();
+  applyTreeCollapsed();
   let v=hashView();
   if(!v){v=document.querySelector('.nav-item.active')?.dataset.view||'dashboard';history.replaceState({v},'','#/'+v);}
   switchView(v,true);
-})();
+  save();   /* 迁移后的数据回写落盘（无变化时为等价写入） */
+}
+boot();
 </script>
 
 

@@ -1,6 +1,6 @@
 # AI Hub · 本地 AI 工具管理工作台
 
-一个**纯本地、单文件、零依赖**的 AI 资产管理工作台。双击 `ai-hub.html` 即可在浏览器中使用，所有数据保存在本机 localStorage，**数据不出机器**。
+一个**纯本地**的 AI 资产管理工作台，前后端分离：前端为单文件 `ai-hub.html`（原生 HTML/CSS/JS，零依赖），后端为 Go 标准库实现的本地 HTTP 服务，所有数据保存在本机 `data/` 目录的文件中，**数据不出机器**。
 
 界面采用 Claude 风格设计语言：暖米白纸感底色、陶土橘强调色、Lora 衬线标题，克制的微交互。支持**浅色 / 暗色双主题**：右上角月亮 / 太阳按钮一键切换，首次打开跟随系统偏好，选择持久保存在本地。
 
@@ -24,14 +24,21 @@
 
 ## 使用
 
-无需安装，直接用浏览器打开：
+需要 Go 1.19+，启动本地服务后用浏览器访问（前端页面已嵌入二进制，无需单独托管）：
 
 ```bash
-open ai-hub.html        # macOS
-# 或双击文件
+cd ai-hub
+go run ./cmd/aihub          # 默认监听 :8080，数据存 ./data
+# 打开 http://localhost:8080
 ```
 
-> 也可以起一个静态服务：`python3 -m http.server 8931`，然后访问 `http://127.0.0.1:8931/ai-hub.html`。
+可选参数：
+
+```bash
+go run ./cmd/aihub -addr :9000 -data ~/aihub-data
+```
+
+> 直接双击 `ai-hub.html`（file://）不再支持数据持久化：页面会提示本地服务未连接，只能临时浏览示例数据。
 
 ## 压缩脚本
 
@@ -42,15 +49,16 @@ python3 minify.py                      # 默认: ai-hub.html -> ai-hub.min.html
 python3 minify.py in.html -o out.html  # 指定输入 / 输出
 ```
 
-运行结束打印压缩前后与 gzip 体积对比。压缩副本可直接双击打开使用，功能与源文件完全一致。
+运行结束打印压缩前后与 gzip 体积对比。压缩副本替换到服务端源文件位置（重新 `go run` 会重新嵌入）后功能一致；直接双击仅能临时浏览，不持久化。
 
 ## 数据与备份
 
-- 所有数据持久化在浏览器 `localStorage`（key：`aihub.v1`），首次打开自动写入示例数据
-- 旧版本独立的「JSON 文档」数据会在打开时**自动合并**进 Docs 目录树（JSON 文档带 `{ }` 图标），无需手动处理
-- 左下角 **导出**：下载 JSON 备份文件
-- 左下角 **导入**：从备份文件恢复
-- 注意：数据与浏览器绑定，清除浏览器数据或换浏览器前请先导出备份
+- 业务数据全量保存在服务端 `data/aihub.json`（单次写入走临时文件 + rename 原子替换），首次启动自动写入示例数据
+- 界面偏好（主题 / 侧栏收起 / Docs 目录树收起）保存在 `data/prefs.json`
+- 旧版本 localStorage 数据：结构与导出备份一致，可在旧版页面「导出」后到新版「导入备份」
+- 旧版本独立的「JSON 文档」数据会在首次加载时**自动合并**进 Docs 目录树（JSON 文档带 `{ }` 图标），无需手动处理
+- 设置页 **导出备份**：下载 JSON 备份文件；**导入备份**：从备份文件恢复（整文件覆盖）
+- 也可直接复制 / 备份 `data/aihub.json`
 
 > ⚠️ **不要在浏览器中对该文件使用「另存为 / Cmd+S」保存回原路径** — 浏览器保存的是渲染后的 DOM 快照，会覆盖并损坏源码。编辑请使用代码编辑器。
 
@@ -59,8 +67,23 @@ python3 minify.py in.html -o out.html  # 指定输入 / 输出
 - **快速连接 / 工具箱**：页面内直接增删改
 - **MCP 模版**：编辑 `ai-hub.html` 中的 `TPL` 常量即可扩展模版
 - **配色 / 字体**：文件头部 `:root` CSS 变量集中管理，暗色主题对应 `:root[data-theme="dark"]` 覆盖层
-- **主题偏好**：保存在 localStorage（key：`aihub.theme`），默认跟随系统深浅色设置
+- **主题偏好**：保存在服务端 `data/prefs.json`，默认跟随系统深浅色设置
 
 ## 技术栈
 
-原生 HTML + CSS + JavaScript，无框架、无构建、无网络请求（仅 Google Fonts，断网时优雅降级为系统字体）。
+- 前端：原生 HTML + CSS + JavaScript，无框架、无构建（仅 Google Fonts，断网时优雅降级为系统字体）
+- 后端：Go 标准库 `net/http`，零第三方依赖；`ai-hub.html` 通过 `go:embed` 嵌入二进制
+- 存储：本地 JSON 文件（`data/aihub.json`、`data/prefs.json`），互斥锁 + 原子写
+
+### 目录结构
+
+```
+ai-hub/
+├── ai-hub.html          # 前端单页
+├── web.go               # go:embed 嵌入前端
+├── cmd/aihub/main.go    # 服务入口（-addr / -data 参数）
+├── internal/
+│   ├── store/store.go   # 文件存储（原子写）
+│   └── api/api.go       # HTTP 路由：/、/api/db、/api/state
+└── data/                # 运行时生成，已 gitignore
+```
